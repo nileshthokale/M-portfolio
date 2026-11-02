@@ -1,0 +1,141 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-dark: #000000;
+  --surface-dark: #06070c;
+  --text-dark: #eef0f5;
+  --bg-light: #eef0f5;
+  --text-light: #05060a;
+  --accent-pink: #ff4fa3;
+  --accent-violet: #7b5cff;
+  --accent-orange: #ff9a3c;
+  --accent-gradient: linear-gradient(95deg, #ff4fa3 0%, #7b5cff 52%, #ff9a3c 100%);
+  --card-radius: 28px;
+  --font-display: 'Dela Gothic One', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+html {
+  font-family: var(--font-sans);
+  background-color: var(--bg-dark);
+  color: var(--text-dark);
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #000000;
+  color: #eef0f5;
+}
+
+.font-display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  line-height: 0.95;
+}
+
+.font-mono-num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Video-matched hero metallic silver-white gradient text */
+.hero-title-gradient {
+  background: linear-gradient(180deg, #ffffff 0%, #f1f3f9 42%, #6e7382 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Outlined display heading that transitions to solid fill */
+.text-outline-white {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(238, 240, 245, 0.78);
+}
+
+.text-outline-dark {
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(5, 6, 10, 0.38);
+}
+
+/* Gradient pill button matching reference video */
+.btn-gradient-pill {
+  background: var(--accent-gradient);
+  box-shadow: 0 0 32px rgba(255, 79, 163, 0.42), 0 0 64px rgba(123, 92, 255, 0.26);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-gradient-pill:hover {
+  transform: translate3d(0, -2px, 0) scale(1.02);
+  box-shadow: 0 0 42px rgba(255, 79, 163, 0.62), 0 0 80px rgba(255, 154, 60, 0.38);
+}
+
+/* Outlined dark card matching video 1px white/30 border */
+.card-outlined-dark {
+  border: 1px solid rgba(238, 240, 245, 0.32);
+  border-radius: var(--card-radius);
+  background-color: #05060a;
+  transition: border-color 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-outlined-dark:hover {
+  border-color: rgba(255, 79, 163, 0.75);
+  box-shadow: 0 14px 44px -12px rgba(123, 92, 255, 0.3);
+}
+
+/* Pure CSS GPU-accelerated infinite marquee */
+@keyframes marqueeScroll {
+  0% {
+    transform: translate3d(0, 0, 0);
+  }
+  100% {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.animate-marquee-css {
+  display: flex;
+  width: max-content;
+  animation: marqueeScroll 28s linear infinite;
+  will-change: transform;
+}
+
+.animate-marquee-css:hover {
+  animation-play-state: paused;
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translate3d(0, 0px, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) rotate(4deg);
+  }
+}
+
+@keyframes floatReverse {
+  0%, 100% {
+    transform: translate3d(0, 0px, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, 12px, 0) rotate(-4deg);
+  }
+}
+
+.animate-float-slow {
+  animation: floatSlow 5.5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: floatReverse 6.5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
