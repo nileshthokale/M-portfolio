@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { ExternalLink, Github, Globe, Instagram, Linkedin } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 
 export const FooterSection: React.FC = () => {
@@ -72,15 +73,16 @@ export const FooterSection: React.FC = () => {
           <h3 className="font-display text-xs uppercase tracking-widest text-[#eef0f5]">
             SOCIAL
           </h3>
-          <ul className="mt-3 space-y-1 text-sm text-[#eef0f5]/75">
+          <ul className="mt-3 space-y-1.5 text-sm text-[#eef0f5]/80">
             <li>
               <a
-                href={PORTFOLIO_DATA.profile.socials.gokalifree}
+                href={PORTFOLIO_DATA.profile.socials.portfolio}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
+                className="group inline-flex items-center gap-2.5 min-h-[40px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
-                GoKaliFree (gokalifree.in)
+                <Globe className="w-4 h-4 text-[#ff9a3c] group-hover:text-[#ff4fa3] shrink-0 transition-colors" />
+                <span className="font-mono text-xs sm:text-sm">nileshthokale.vercel.app</span>
               </a>
             </li>
             <li>
@@ -88,9 +90,21 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.socials.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
+                className="group inline-flex items-center gap-2.5 min-h-[40px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
-                GitHub (nileshthokale)
+                <Github className="w-4 h-4 text-[#eef0f5]/80 group-hover:text-[#ff4fa3] shrink-0 transition-colors" />
+                <span className="font-mono text-xs sm:text-sm">{PORTFOLIO_DATA.profile.socials.githubDisplay}</span>
+              </a>
+            </li>
+            <li>
+              <a
+                href={PORTFOLIO_DATA.profile.socials.instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2.5 min-h-[40px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
+              >
+                <Instagram className="w-4 h-4 text-[#ff4fa3] shrink-0 transition-colors" />
+                <span className="font-mono text-xs sm:text-sm">{PORTFOLIO_DATA.profile.socials.instagramDisplay}</span>
               </a>
             </li>
             <li>
@@ -98,19 +112,31 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.socials.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
+                className="group inline-flex items-center gap-2.5 min-h-[40px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
-                LinkedIn (nileshthokale)
+                <Linkedin className="w-4 h-4 text-[#38bdf8] group-hover:text-[#ff4fa3] shrink-0 transition-colors" />
+                <span className="font-mono text-xs sm:text-sm">{PORTFOLIO_DATA.profile.socials.linkedinDisplay}</span>
               </a>
             </li>
             <li>
               <a
+                href={PORTFOLIO_DATA.profile.socials.gokalifree}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex items-center gap-2.5 min-h-[40px] px-2 -ml-2 rounded-lg hover:text-[#ff9a3c] active:text-[#ff9a3c] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
+              >
+                <ExternalLink className="w-4 h-4 text-[#ff9a3c] shrink-0 transition-colors" />
+                <span>GoKaliFree (gokalifree.in)</span>
+              </a>
+            </li>
+            <li className="pt-1">
+              <a
                 href={PORTFOLIO_DATA.profile.resumePdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff9a3c] active:text-[#ff9a3c] active:bg-white/10 active:scale-[0.98] transition-all font-semibold touch-manipulation"
+                className="inline-flex items-center min-h-[40px] px-2 -ml-2 rounded-lg text-[#ff9a3c] hover:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all font-semibold touch-manipulation text-xs tracking-wider uppercase"
               >
-                Download Resume (PDF)
+                Download Resume (PDF) →
               </a>
             </li>
           </ul>

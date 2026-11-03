@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { CheckCircle2, Mail, Phone, Send } from 'lucide-react';
+import { CheckCircle2, Github, Globe, Instagram, Linkedin, Mail, Phone, Send } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 import { validateContactForm, ContactPayload } from '../lib/portfolioLogic';
 import { GlossyShape3D } from '../components/GlossyShape3D';
@@ -195,6 +195,49 @@ export const ContactSection: React.FC = () => {
           <p className="mt-4 text-sm sm:text-base font-medium text-[#05060a]/75 max-w-[38ch]">
             Available for entry-level Software Engineering, Web Development, Cybersecurity, and Data Science roles, plus freelance projects.
           </p>
+
+          {/* Social Links Matrix */}
+          <div className="mt-6 flex flex-wrap gap-2.5 max-w-md">
+            <a
+              href={PORTFOLIO_DATA.profile.socials.portfolio}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#7b5cff]/10 border border-black/10 hover:border-[#7b5cff]/30 text-xs font-semibold text-[#05060a] hover:text-[#7b5cff] active:scale-95 transition-all touch-manipulation"
+            >
+              <Globe className="w-3.5 h-3.5 text-[#ff9a3c]" />
+              <span>nileshthokale.vercel.app</span>
+            </a>
+
+            <a
+              href={PORTFOLIO_DATA.profile.socials.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-black/10 border border-black/10 hover:border-black/25 text-xs font-semibold text-[#05060a] active:scale-95 transition-all touch-manipulation"
+            >
+              <Github className="w-3.5 h-3.5" />
+              <span>{PORTFOLIO_DATA.profile.socials.githubDisplay}</span>
+            </a>
+
+            <a
+              href={PORTFOLIO_DATA.profile.socials.instagram}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#ff4fa3]/10 border border-black/10 hover:border-[#ff4fa3]/30 text-xs font-semibold text-[#05060a] hover:text-[#ff4fa3] active:scale-95 transition-all touch-manipulation"
+            >
+              <Instagram className="w-3.5 h-3.5 text-[#ff4fa3]" />
+              <span>{PORTFOLIO_DATA.profile.socials.instagramDisplay}</span>
+            </a>
+
+            <a
+              href={PORTFOLIO_DATA.profile.socials.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#0077b5]/10 border border-black/10 hover:border-[#0077b5]/30 text-xs font-semibold text-[#05060a] hover:text-[#0077b5] active:scale-95 transition-all touch-manipulation"
+            >
+              <Linkedin className="w-3.5 h-3.5 text-[#0077b5]" />
+              <span>{PORTFOLIO_DATA.profile.socials.linkedinDisplay}</span>
+            </a>
+          </div>
 
           {/* Bottom-Left Floating 3D Purple Hand (Video 00:18) */}
           <div
