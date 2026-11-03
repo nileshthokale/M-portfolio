@@ -23,19 +23,11 @@ export const ProjectArtwork: React.FC<ProjectArtworkProps> = ({
   featured = false,
   stackIndex = 0,
 }) => {
-  // Desktop bento grid heights graduated by 92px per stack level:
-  // stackIndex 0 (Card 01): grid = 524px (large) / two 252px right cards + 20px gap
-  // stackIndex 1 (Card 02): grid = 432px (large) / two 206px right cards + 20px gap
-  // stackIndex 2 (Card 03): grid = 340px (large) / two 160px right cards + 20px gap
-  const emptyLargeHeightClass =
-    stackIndex === 1
-      ? 'min-h-[220px] sm:min-h-[300px] lg:h-[432px]'
-      : 'min-h-[220px] sm:min-h-[280px] lg:h-[340px]';
-
-  const emptySmallHeightClass =
-    stackIndex === 1
-      ? 'min-h-[145px] sm:min-h-[165px] lg:h-[206px]'
-      : 'min-h-[140px] sm:min-h-[155px] lg:h-[160px]';
+  // Consistent desktop bento preview dimensions across all projects (Project 01, 02, 03):
+  // Large main preview: lg:h-[524px]
+  // Two stacked preview boxes on right: lg:h-[252px] each + 20px gap (gap-5) = 524px
+  const emptyLargeHeightClass = 'min-h-[260px] sm:min-h-[340px] lg:h-[524px]';
+  const emptySmallHeightClass = 'min-h-[160px] sm:min-h-[180px] lg:h-[252px]';
 
   if (visual.theme === 'empty-slot') {
     return (

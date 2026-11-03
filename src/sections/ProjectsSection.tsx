@@ -46,6 +46,42 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
         }
       });
 
+      // Keep the 3-card stack locked together when scrolling out of view:
+      // The last card (Card 03) hits the bottom of the section first at top: 266px.
+      // If Card 03 is pushed upward (lastCardRect.top < lastStickyTop), all preceding cards
+      // (Card 01 & 02) lift in exact lockstep so Card 03 never blocks or covers them.
+      const isDesktop = window.innerWidth >= 1024;
+      const lastIndex = cardRefs.current.length - 1;
+      const lastCard = cardRefs.current[lastIndex];
+
+      if (isDesktop && lastCard) {
+        const lastCardRect = lastCard.getBoundingClientRect();
+        const lastStickyTop = 82 + lastIndex * 92;
+        if (lastCardRect.top < lastStickyTop) {
+          const liftDelta = lastStickyTop - lastCardRect.top;
+          for (let i = 0; i < lastIndex; i++) {
+            const prevCard = cardRefs.current[i];
+            if (prevCard) {
+              prevCard.style.transform = `translate3d(0, -${liftDelta}px, 0)`;
+            }
+          }
+        } else {
+          for (let i = 0; i < lastIndex; i++) {
+            const prevCard = cardRefs.current[i];
+            if (prevCard && prevCard.style.transform) {
+              prevCard.style.transform = '';
+            }
+          }
+        }
+      } else {
+        for (let i = 0; i < lastIndex; i++) {
+          const prevCard = cardRefs.current[i];
+          if (prevCard && prevCard.style.transform) {
+            prevCard.style.transform = '';
+          }
+        }
+      }
+
       ticking = false;
     };
 
@@ -66,10 +102,10 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
       id="projects"
       ref={sectionRef}
       aria-labelledby="projects-heading"
-      className="scroll-mt-20 bg-[#000000] text-[#eef0f5] rounded-t-[40px] sm:rounded-t-[64px] -mt-8 pt-20 sm:pt-24 pb-24 sm:pb-28 px-4 sm:px-6 lg:px-10 relative z-20 shadow-[0_-24px_60px_rgba(0,0,0,0.45)]"
+      className="scroll-mt-20 bg-[#000000] text-[#eef0f5] rounded-t-[40px] sm:rounded-t-[64px] -mt-8 pt-20 sm:pt-24 pb-24 sm:pb-28 px-4 sm:px-6 lg:px-8 xl:px-10 relative z-20 shadow-[0_-24px_60px_rgba(0,0,0,0.45)]"
     >
-      {/* Full-Width Portfolio Showcase Container */}
-      <div className="w-full max-w-[1640px] mx-auto">
+      {/* Full-Width Portfolio Showcase Container (90–95% Desktop Viewport Width, matching Screenshot 2) */}
+      <div className="w-full max-w-[92vw] 2xl:max-w-[1680px] mx-auto">
         {/* Giant Centered PROJECTS Heading (00:10 outline -> 00:11 solid white) */}
         <div className="text-center mb-12 sm:mb-16">
           <p className="text-xs font-mono-num uppercase tracking-[0.24em] text-[#ff9a3c]">
@@ -85,7 +121,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
         </div>
 
         {/* Video-Matched Sticky Stacking Project Cards (00:11 -> 00:12 -> 00:13 -> 00:14) */}
-        <div className="relative flex flex-col gap-10 lg:gap-16 pb-4">
+        <div className="relative flex flex-col gap-10 lg:gap-16 pb-12 lg:pb-36">
           {PORTFOLIO_DATA.projects.map((project: ProjectItem, index: number) => {
             const isEmpty = Boolean(project.isEmptyTemplate);
             const isFlagship = index === 0;
