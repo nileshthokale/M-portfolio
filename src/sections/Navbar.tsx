@@ -15,13 +15,13 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#000000]/90 border-b border-white/5">
-      <div className="max-w-[1380px] mx-auto flex items-center justify-between gap-8 px-6 sm:px-12 py-5">
-        {/* Zone 1: Brand Wordmark */}
+    <header className="sticky top-0 z-40 w-full bg-[#000000]/90 backdrop-blur-md border-b border-white/5">
+      <div className="max-w-[1380px] mx-auto flex items-center justify-between gap-6 px-4 sm:px-12 py-3.5 sm:py-4">
+        {/* Zone 1: Brand Wordmark with 44px+ touch target */}
         <a
           href="#top"
           onClick={handleLinkClick}
-          className="font-display text-sm sm:text-base tracking-wider text-[#eef0f5] whitespace-nowrap shrink-0"
+          className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg font-display text-sm sm:text-base tracking-wider text-[#eef0f5] active:scale-95 active:text-[#ff4fa3] transition-all whitespace-nowrap shrink-0 touch-manipulation"
         >
           NILESH
         </a>
@@ -29,27 +29,27 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
         {/* Zone 2: 4 Uppercase Letter-Spaced Links matching 00:00 of reference video */}
         <nav
           aria-label="Primary Navigation"
-          className="hidden md:flex items-center justify-between gap-16 lg:gap-28 text-xs font-bold uppercase tracking-[0.22em] text-[#eef0f5]/90"
+          className="hidden md:flex items-center justify-between gap-12 lg:gap-24 text-xs font-bold uppercase tracking-[0.22em] text-[#eef0f5]/90"
         >
           {PORTFOLIO_DATA.navLinks.map((link) => (
             <a
               key={link.href}
               href={link.href}
               onClick={handleLinkClick}
-              className="relative py-1 hover:text-[#ff4fa3] transition-colors whitespace-nowrap shrink-0"
+              className="relative inline-flex items-center min-h-[44px] px-3 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:scale-95 transition-all whitespace-nowrap shrink-0 touch-manipulation"
             >
               {link.label}
             </a>
           ))}
         </nav>
 
-        {/* Zone 3: Resume PDF Link + Mobile Menu Button */}
+        {/* Zone 3: Resume PDF Link + 48x48px Mobile Menu Button */}
         <div className="flex items-center gap-3 shrink-0">
           <a
             href={PORTFOLIO_DATA.profile.resumePdfUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden sm:inline-flex items-center justify-center px-4 py-1.5 text-[11px] font-bold uppercase tracking-widest text-[#eef0f5]/85 rounded-full border border-white/20 hover:border-[#ff4fa3] hover:text-white transition-colors whitespace-nowrap shrink-0"
+            className="hidden sm:inline-flex items-center justify-center min-h-[44px] px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-[#eef0f5]/85 rounded-full border border-white/20 hover:border-[#ff4fa3] hover:text-white active:scale-95 active:border-[#ff4fa3] active:bg-white/10 transition-all whitespace-nowrap shrink-0 touch-manipulation"
           >
             RESUME PDF
           </a>
@@ -57,7 +57,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="md:hidden inline-flex items-center justify-center w-10 h-10 rounded-full border border-white/20 text-[#eef0f5]"
+            className="md:hidden inline-flex items-center justify-center w-12 h-12 min-w-[48px] min-h-[48px] rounded-full border border-white/25 text-[#eef0f5] active:scale-90 active:bg-white/15 active:border-[#ff4fa3] transition-all touch-manipulation cursor-pointer"
             aria-expanded={mobileMenuOpen}
             aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
           >
@@ -68,23 +68,35 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
 
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 top-[68px] z-50 bg-[#000000] px-6 py-10 flex flex-col justify-between md:hidden border-t border-white/10"
+          className="fixed inset-0 top-[76px] z-50 bg-[#000000]/98 backdrop-blur-xl px-6 py-8 flex flex-col justify-between md:hidden border-t border-white/10 overflow-y-auto"
           role="dialog"
           aria-label="Mobile Navigation Menu"
         >
-          <nav className="flex flex-col gap-6">
+          <nav className="flex flex-col gap-3">
             {PORTFOLIO_DATA.navLinks.map((link, i) => (
               <a
                 key={link.href}
                 href={link.href}
                 onClick={handleLinkClick}
-                className="font-display text-3xl uppercase text-[#eef0f5] hover:text-[#ff4fa3] transition-colors flex items-center gap-4"
+                className="min-h-[56px] px-4 py-3 rounded-2xl font-display text-2xl sm:text-3xl uppercase text-[#eef0f5] hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all flex items-center gap-4 touch-manipulation"
               >
                 <span className="font-mono-num text-sm text-[#ff9a3c]">0{i + 1}</span>
                 <span>{link.label}</span>
               </a>
             ))}
           </nav>
+
+          <div className="pt-6 border-t border-white/10">
+            <a
+              href={PORTFOLIO_DATA.profile.resumePdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => setMobileMenuOpen(false)}
+              className="w-full min-h-[52px] inline-flex items-center justify-center rounded-full btn-gradient-pill text-white font-bold uppercase tracking-widest text-xs active:scale-[0.97] transition-all touch-manipulation"
+            >
+              DOWNLOAD RESUME (PDF)
+            </a>
+          </div>
         </div>
       )}
     </header>

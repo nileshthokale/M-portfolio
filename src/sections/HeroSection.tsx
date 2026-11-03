@@ -54,7 +54,7 @@ export const HeroSection: React.FC = () => {
     <section
       id="top"
       ref={sectionRef}
-      className="relative min-h-[calc(100vh-80px)] flex flex-col justify-between pt-8 pb-12 sm:pt-14 sm:pb-16 px-4 sm:px-10 max-w-[1440px] mx-auto overflow-hidden"
+      className="relative min-h-[calc(100vh-80px)] w-full max-w-[1440px] mx-auto flex flex-col justify-between pt-10 sm:pt-16 pb-6 px-4 sm:px-8 overflow-hidden"
       aria-labelledby="hero-heading"
     >
       {/* Subtle Ambient Purple/Pink Glow */}
@@ -73,7 +73,7 @@ export const HeroSection: React.FC = () => {
           initial={{ y: '90%', opacity: 0 }}
           animate={{ y: '0%', opacity: 1 }}
           transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
-          className="font-display uppercase hero-title-gradient text-[clamp(2.5rem,9.1vw,8.8rem)] tracking-tight leading-[0.94] sm:whitespace-nowrap select-none"
+          className="w-full font-display uppercase hero-title-gradient text-[clamp(2.4rem,9.1vw,8.8rem)] tracking-tight leading-[0.94] sm:whitespace-nowrap select-none"
         >
           {PORTFOLIO_DATA.profile.heroHeading}
         </motion.h1>
@@ -82,7 +82,7 @@ export const HeroSection: React.FC = () => {
       {/* Center / Lower Full-Screen Row: Left Uppercase Subtitle | Right Glowing Gradient "CONTACT ME" Pill */}
       <div
         ref={bottomRowRef}
-        className="my-auto py-10 sm:py-14 flex flex-col sm:flex-row items-center justify-between gap-10 px-2 sm:px-6 will-change-transform"
+        className="my-auto py-10 sm:py-14 flex flex-col sm:flex-row items-center justify-between gap-8 sm:gap-10 px-2 sm:px-6 will-change-transform"
       >
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -111,11 +111,11 @@ export const HeroSection: React.FC = () => {
       </div>
 
       {/* Bottom Scroll Cue anchored at bottom of 100vh Hero */}
-      <div className="flex items-center justify-between px-2 sm:px-6 pt-4 border-t border-white/10 text-[11px] font-mono-num uppercase tracking-[0.2em] text-[#eef0f5]/55">
-        <span>GOKALIFREE.IN · CYBERSECURITY &amp; WEB ENGINEERING</span>
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-2 sm:px-6 pt-4 border-t border-white/10 text-[11px] font-mono-num uppercase tracking-[0.2em] text-[#eef0f5]/55">
+        <span className="text-center sm:text-left">GOKALIFREE.IN · CYBERSECURITY &amp; WEB ENGINEERING</span>
         <a
           href="#about"
-          className="inline-flex items-center gap-2 text-[#eef0f5]/75 hover:text-white transition-colors"
+          className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full text-[#eef0f5]/80 hover:text-white active:bg-white/10 active:scale-95 transition-all touch-manipulation"
         >
           <span>SCROLL TO EXPLORE</span>
           <ArrowDown className="w-3.5 h-3.5 animate-bounce text-[#ff4fa3]" />

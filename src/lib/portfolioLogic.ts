@@ -1,4 +1,4 @@
-import { SkillCategoryItem } from '../data/portfolio';
+import type { SkillCategoryItem } from '../data/portfolio.ts';
 
 export interface ContactPayload {
   name: string;

@@ -24,14 +24,14 @@ export const MagneticButton: React.FC<MagneticButtonProps> = ({
   external = false,
 }) => {
   const baseClasses =
-    'inline-flex items-center justify-center gap-2 rounded-full font-bold uppercase tracking-wider text-xs sm:text-sm px-7 py-3.5 whitespace-nowrap shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ff4fa3] transition-all duration-150 cursor-pointer';
+    'inline-flex items-center justify-center gap-2 rounded-full font-bold uppercase tracking-wider text-xs sm:text-sm min-h-[48px] min-w-[48px] px-7 py-3.5 whitespace-nowrap shrink-0 select-none touch-manipulation active:scale-[0.96] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#ff4fa3] transition-all duration-150 cursor-pointer';
 
   const variantClasses =
     variant === 'gradient'
-      ? 'btn-gradient-pill text-white'
+      ? 'btn-gradient-pill text-white active:brightness-110'
       : variant === 'outline-dark'
-      ? 'border border-[#05060a] text-[#05060a] hover:bg-[#05060a] hover:text-[#eef0f5]'
-      : 'border border-[#eef0f5]/50 text-[#eef0f5] hover:border-[#ff4fa3] hover:bg-white/5';
+      ? 'border border-[#05060a] text-[#05060a] hover:bg-[#05060a] hover:text-[#eef0f5] active:bg-[#05060a] active:text-[#eef0f5]'
+      : 'border border-[#eef0f5]/50 text-[#eef0f5] hover:border-[#ff4fa3] hover:bg-white/5 active:border-[#ff4fa3] active:bg-[#ff4fa3]/15';
 
   if (href) {
     return (

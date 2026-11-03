@@ -174,10 +174,10 @@ export const ContactSection: React.FC = () => {
             </span>
           </h2>
 
-          <div className="mt-7 flex flex-col gap-2">
+          <div className="mt-7 flex flex-col items-start gap-1.5">
             <a
               href={`mailto:${PORTFOLIO_DATA.profile.email}`}
-              className="inline-flex items-center gap-2.5 text-xl sm:text-2xl font-extrabold text-[#7b5cff] hover:text-[#ff4fa3] transition-colors break-all"
+              className="inline-flex items-center gap-2.5 min-h-[46px] px-2 -ml-2 rounded-xl text-xl sm:text-2xl font-extrabold text-[#7b5cff] hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-[#7b5cff]/10 active:scale-[0.98] transition-all break-all touch-manipulation"
             >
               <Mail className="w-5 h-5 shrink-0" />
               <span>{PORTFOLIO_DATA.profile.email}</span>
@@ -185,7 +185,7 @@ export const ContactSection: React.FC = () => {
 
             <a
               href={`tel:${PORTFOLIO_DATA.profile.phone.replace(/\s+/g, '')}`}
-              className="inline-flex items-center gap-2.5 text-base sm:text-lg font-bold font-mono-num text-[#05060a]/85 hover:text-[#7b5cff] transition-colors"
+              className="inline-flex items-center gap-2.5 min-h-[44px] px-2 -ml-2 rounded-xl text-base sm:text-lg font-bold font-mono-num text-[#05060a]/85 hover:text-[#7b5cff] active:text-[#7b5cff] active:bg-[#7b5cff]/10 active:scale-[0.98] transition-all touch-manipulation"
             >
               <Phone className="w-4 h-4 shrink-0 text-[#7b5cff]" />
               <span>{PORTFOLIO_DATA.profile.phone}</span>
@@ -224,7 +224,7 @@ export const ContactSection: React.FC = () => {
                 placeholder=""
                 aria-invalid={Boolean(errors.name)}
                 aria-describedby={errors.name ? 'error-name' : undefined}
-                className="mt-1 w-full bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors"
+                className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
               />
               {errors.name && (
                 <p id="error-name" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
@@ -250,7 +250,7 @@ export const ContactSection: React.FC = () => {
                   placeholder=""
                   aria-invalid={Boolean(errors.email)}
                   aria-describedby={errors.email ? 'error-email' : undefined}
-                  className="mt-1 w-full bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors"
+                  className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
                 />
                 {errors.email && (
                   <p id="error-email" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
@@ -273,7 +273,7 @@ export const ContactSection: React.FC = () => {
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                   placeholder=""
-                  className="mt-1 w-full bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors"
+                  className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
                 />
               </div>
             </div>
@@ -294,7 +294,7 @@ export const ContactSection: React.FC = () => {
                 placeholder=""
                 aria-invalid={Boolean(errors.message)}
                 aria-describedby={errors.message ? 'error-message' : undefined}
-                className="mt-1 w-full bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors resize-none"
+                className="mt-1 w-full min-h-[96px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors resize-none touch-manipulation"
               />
               {errors.message && (
                 <p id="error-message" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
@@ -307,7 +307,7 @@ export const ContactSection: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full py-4 px-8 rounded-full border border-[#05060a] text-[#05060a] font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-[#05060a] hover:text-[#eef0f5] transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                className="w-full min-h-[52px] py-4 px-8 rounded-full border border-[#05060a] text-[#05060a] font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-[#05060a] hover:text-[#eef0f5] active:bg-[#05060a] active:text-[#eef0f5] active:scale-[0.97] transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation select-none"
               >
                 <Send className="w-4 h-4" />
                 <span>{submitting ? 'SENDING...' : 'SEND'}</span>

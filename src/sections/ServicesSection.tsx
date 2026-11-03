@@ -10,25 +10,35 @@ export const ServicesSection: React.FC = () => {
     let ticking = false;
 
     const updateServicesScroll = () => {
-      const vh = window.innerHeight;
+      const section = sectionRef.current;
+      if (!section) {
+        ticking = false;
+        return;
+      }
+
+      const sRect = section.getBoundingClientRect();
+      const vh = window.innerHeight || 800;
       const viewportCenter = vh * 0.52;
 
       // 1. Heading transitions from silver-grey (#c2c6d1 at 00:07) to solid black (#05060a at 00:08)
       if (headingRef.current) {
-        const hRect = headingRef.current.getBoundingClientRect();
-        const hProgress = Math.max(0, Math.min(1, (vh * 0.78 - hRect.top) / (vh * 0.35)));
+        const hProgress = Math.max(0, Math.min(1, (vh * 0.82 - sRect.top) / (vh * 0.35)));
         headingRef.current.style.opacity = (0.22 + hProgress * 0.78).toFixed(2);
       }
 
-      // 2. Each numbered row (01..05) highlights to 100% solid black near viewport center and fades to ~22% when away (00:07-00:09)
-      rowRefs.current.forEach((row) => {
+      // 2. Compute each numbered row's center from static section bounds so touch-scrolling never reads transformed child rects
+      const totalRows = rowRefs.current.length || 5;
+      const listTop = sRect.top + sRect.height * 0.22;
+      const listHeight = sRect.height * 0.72;
+      const rowHeight = listHeight / totalRows;
+
+      rowRefs.current.forEach((row, idx) => {
         if (!row) return;
-        const rect = row.getBoundingClientRect();
-        const rowCenter = rect.top + rect.height * 0.5;
+        const rowCenter = listTop + (idx + 0.5) * rowHeight;
         const dist = Math.abs(rowCenter - viewportCenter);
-        const maxDist = vh * 0.42;
+        const maxDist = vh * 0.46;
         const focus = Math.max(0, Math.min(1, 1 - dist / maxDist));
-        const opacity = 0.2 + focus * 0.8;
+        const opacity = 0.24 + focus * 0.76;
         const translateY = (1 - focus) * 6;
         row.style.opacity = opacity.toFixed(2);
         row.style.transform = `translate3d(0, ${translateY.toFixed(1)}px, 0)`;
@@ -46,7 +56,11 @@ export const ServicesSection: React.FC = () => {
 
     updateServicesScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener('resize', onScroll, { passive: true });
+    return () => {
+      window.removeEventListener('scroll', onScroll);
+      window.removeEventListener('resize', onScroll);
+    };
   }, []);
 
   return (
@@ -54,7 +68,7 @@ export const ServicesSection: React.FC = () => {
       id="services"
       ref={sectionRef}
       aria-labelledby="services-heading"
-      className="scroll-mt-20 bg-[#eef0f5] text-[#05060a] rounded-[40px] sm:rounded-[52px] mx-2 sm:mx-5 py-20 sm:py-28 px-6 sm:px-12"
+      className="scroll-mt-20 bg-[#eef0f5] text-[#05060a] rounded-[40px] sm:rounded-[52px] mx-2 sm:mx-5 py-20 sm:py-28 px-5 sm:px-12"
     >
       <div className="max-w-[1040px] mx-auto">
         {/* Giant Centered SERVICES Heading (Matches 00:07-00:08 of video) */}
@@ -76,7 +90,7 @@ export const ServicesSection: React.FC = () => {
               ref={(el) => {
                 rowRefs.current[idx] = el;
               }}
-              className="py-10 sm:py-12 flex flex-col sm:flex-row items-start sm:items-center gap-6 sm:gap-12 will-change-transform transition-opacity duration-150"
+              className="py-9 sm:py-12 px-3 sm:px-4 -mx-3 sm:-mx-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-5 sm:gap-12 will-change-transform transition-all duration-150 active:bg-[#05060a]/[0.05] touch-manipulation"
             >
               {/* Huge Chunky Number 01..05 on Left */}
               <span className="font-display text-5xl sm:text-7xl tracking-tight text-[#05060a] shrink-0 sm:w-36">

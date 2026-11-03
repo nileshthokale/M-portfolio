@@ -25,11 +25,11 @@ export const ProjectDetailView: React.FC<ProjectDetailViewProps> = ({
     <article className="min-h-screen bg-[#05060a] text-[#eef0f5] pt-8 pb-24 px-5 sm:px-8">
       <div className="max-w-[1280px] mx-auto">
         {/* Top Back Navigation */}
-        <div className="flex items-center justify-between gap-4 pb-8 border-b border-white/15">
+        <div className="flex items-center justify-between gap-4 pb-6 border-b border-white/15">
           <button
             type="button"
             onClick={onBack}
-            className="inline-flex items-center gap-2 text-xs sm:text-sm font-bold uppercase tracking-wider text-[#eef0f5]/80 hover:text-[#ff4fa3] transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 min-h-[48px] px-4 py-2 -ml-4 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wider text-[#eef0f5]/85 hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-95 transition-all cursor-pointer touch-manipulation"
           >
             <ArrowLeft className="w-4 h-4" />
             <span>Back to Portfolio</span>

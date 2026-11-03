@@ -54,13 +54,13 @@ export const FooterSection: React.FC = () => {
             <br />
             THOKALE
           </p>
-          <p className="mt-4 text-xs sm:text-sm text-[#eef0f5]/65 max-w-md">
+          <p className="mt-4 text-xs sm:text-sm text-[#eef0f5]/65 max-w-md leading-relaxed">
             {PORTFOLIO_DATA.profile.role} at {PORTFOLIO_DATA.profile.university} · Creator of{' '}
             <a
               href="https://gokalifree.in"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[#ff9a3c] hover:underline font-semibold"
+              className="inline-flex items-center min-h-[36px] px-1.5 py-1 -mx-1 rounded-md text-[#ff9a3c] hover:underline active:bg-white/10 active:scale-95 transition-all font-semibold touch-manipulation"
             >
               GoKaliFree (gokalifree.in)
             </a>
@@ -72,13 +72,13 @@ export const FooterSection: React.FC = () => {
           <h3 className="font-display text-xs uppercase tracking-widest text-[#eef0f5]">
             SOCIAL
           </h3>
-          <ul className="mt-4 space-y-2.5 text-sm text-[#eef0f5]/75">
+          <ul className="mt-3 space-y-1 text-sm text-[#eef0f5]/75">
             <li>
               <a
                 href={PORTFOLIO_DATA.profile.socials.gokalifree}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#ff4fa3] transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
                 GoKaliFree (gokalifree.in)
               </a>
@@ -88,7 +88,7 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.socials.github}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#ff4fa3] transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
                 GitHub (nileshthokale)
               </a>
@@ -98,7 +98,7 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.socials.linkedin}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#ff4fa3] transition-colors"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all touch-manipulation"
               >
                 LinkedIn (nileshthokale)
               </a>
@@ -108,7 +108,7 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.resumePdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="hover:text-[#ff9a3c] transition-colors font-semibold"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff9a3c] active:text-[#ff9a3c] active:bg-white/10 active:scale-[0.98] transition-all font-semibold touch-manipulation"
               >
                 Download Resume (PDF)
               </a>
@@ -121,11 +121,11 @@ export const FooterSection: React.FC = () => {
           <h3 className="font-display text-xs uppercase tracking-widest text-[#eef0f5]">
             CONTACT
           </h3>
-          <ul className="mt-4 space-y-2.5 text-sm text-[#eef0f5]/75">
+          <ul className="mt-3 space-y-1 text-sm text-[#eef0f5]/75">
             <li>
               <a
                 href={`mailto:${PORTFOLIO_DATA.profile.email}`}
-                className="hover:text-[#ff9a3c] transition-colors break-all"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff9a3c] active:text-[#ff9a3c] active:bg-white/10 active:scale-[0.98] transition-all break-all touch-manipulation"
               >
                 {PORTFOLIO_DATA.profile.email}
               </a>
@@ -133,12 +133,12 @@ export const FooterSection: React.FC = () => {
             <li>
               <a
                 href={`tel:${PORTFOLIO_DATA.profile.phone.replace(/\s+/g, '')}`}
-                className="hover:text-[#ff9a3c] transition-colors font-mono-num"
+                className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg hover:text-[#ff9a3c] active:text-[#ff9a3c] active:bg-white/10 active:scale-[0.98] transition-all font-mono-num touch-manipulation"
               >
                 {PORTFOLIO_DATA.profile.phone}
               </a>
             </li>
-            <li>{PORTFOLIO_DATA.profile.location}</li>
+            <li className="py-1.5">{PORTFOLIO_DATA.profile.location}</li>
             <li className="text-xs text-[#eef0f5]/50 pt-2">
               © {new Date().getFullYear()} Nilesh Thokale. All rights reserved.
             </li>
