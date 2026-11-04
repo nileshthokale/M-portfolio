@@ -50,6 +50,11 @@
         visibility: hidden !important;
         transition: none !important;
       }
+      html.agent-swarm-active [data-swarm-shape]:not([data-agent-active]) {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: none !important;
+      }
       html.agent-swarm-active .agent-char:not([data-char-revealed]) {
         opacity: 0 !important;
         visibility: hidden !important;
@@ -70,10 +75,8 @@
     </style>
     <noscript>
       <style>
-        html.agent-swarm-active [data-swarm-target] {
-          opacity: 1 !important;
-          visibility: visible !important;
-        }
+        html.agent-swarm-active [data-swarm-target],
+        html.agent-swarm-active [data-swarm-shape],
         html.agent-swarm-active .agent-char {
           opacity: 1 !important;
           visibility: visible !important;

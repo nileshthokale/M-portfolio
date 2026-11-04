@@ -199,7 +199,20 @@ export function revealTarget(t: SwarmTarget) {
   t.element.setAttribute('data-agent-active', 'true');
   t.element.style.opacity = '1';
   t.element.style.visibility = 'visible';
-  t.element.style.transform = '';
+  t.element.style.transform = t.type === 'svg-shape' ? 'scale(1)' : '';
+
+  // Also ensure ancestor [data-swarm-target] is marked active so children are never hidden by container
+  let ancestor = t.element.parentElement;
+  while (ancestor) {
+    if (ancestor.hasAttribute('data-swarm-target')) {
+      ancestor.setAttribute('data-agent-active', 'true');
+      ancestor.style.opacity = '1';
+      ancestor.style.visibility = 'visible';
+    }
+    if (ancestor.tagName === 'BODY' || ancestor.tagName === 'FOOTER' || ancestor.id === 'contact') break;
+    ancestor = ancestor.parentElement;
+  }
+
   if (t.spans) {
     t.spans.forEach((s) => {
       s.setAttribute('data-char-revealed', 'true');
@@ -224,11 +237,15 @@ export function revealHeroScopeTargets() {
 }
 
 export function revealContactScopeTargets() {
-  document.querySelectorAll('#contact [data-swarm-target], footer [data-swarm-target]').forEach((el) => {
+  document.querySelectorAll('#contact [data-swarm-target], footer [data-swarm-target], footer [data-swarm-shape]').forEach((el) => {
     el.setAttribute('data-agent-active', 'true');
     (el as HTMLElement).style.opacity = '1';
     (el as HTMLElement).style.visibility = 'visible';
-    (el as HTMLElement).style.transform = '';
+    if ((el as HTMLElement).hasAttribute('data-swarm-shape')) {
+      (el as HTMLElement).style.transform = 'scale(1)';
+    } else {
+      (el as HTMLElement).style.transform = '';
+    }
   });
   document.querySelectorAll('#contact .agent-char, footer .agent-char').forEach((el) => {
     el.setAttribute('data-char-revealed', 'true');
@@ -240,7 +257,7 @@ export function revealContactScopeTargets() {
 export function revealAllPageTargets() {
   revealHeroScopeTargets();
   revealContactScopeTargets();
-  document.querySelectorAll('[data-swarm-target]').forEach((el) => {
+  document.querySelectorAll('[data-swarm-target], [data-swarm-shape]').forEach((el) => {
     el.setAttribute('data-agent-active', 'true');
     (el as HTMLElement).style.opacity = '1';
     (el as HTMLElement).style.visibility = 'visible';
@@ -399,6 +416,10 @@ function scanRun2Targets(): SwarmTarget[] {
   if (footer) {
     const wordmarkEl = footer.querySelector('[data-swarm-target="footer-wordmark"]');
     if (wordmarkEl) {
+      wordmarkEl.setAttribute('data-agent-active', 'true');
+      (wordmarkEl as HTMLElement).style.opacity = '1';
+      (wordmarkEl as HTMLElement).style.visibility = 'visible';
+
       const words = Array.from(wordmarkEl.querySelectorAll('.agent-word')) as HTMLElement[];
       if (words.length >= 2) {
         registerTarget(words[0], 'footer-word-0', 'text', 'footer', 0, { x: 8, y: 4 }, { wordIndex: 0 });
@@ -415,8 +436,16 @@ function scanRun2Targets(): SwarmTarget[] {
 
     const shapeContainer = footer.querySelector('[data-swarm-target="footer-shapes"]');
     if (shapeContainer) {
+      shapeContainer.setAttribute('data-agent-active', 'true');
+      (shapeContainer as HTMLElement).style.opacity = '1';
+      (shapeContainer as HTMLElement).style.visibility = 'visible';
+
       const shapeElements = Array.from(shapeContainer.querySelectorAll('[data-swarm-shape]')) as HTMLElement[];
       shapeElements.forEach((shapeEl, idx) => {
+        (shapeEl as HTMLElement).style.opacity = '0';
+        (shapeEl as HTMLElement).style.transform = 'scale(0.4)';
+        (shapeEl as HTMLElement).style.transformOrigin = 'center';
+
         registerTarget(shapeEl, `footer-shape-${idx}`, 'svg-shape', 'footer', 4 + idx, { x: 4, y: 4 }, { shapeIndex: idx });
       });
     }
@@ -1084,6 +1113,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
           activeTarget.element.style.visibility = 'visible';
         } else if (activeTarget?.type === 'svg-shape') {
           const scale = 0.4 + progress * 0.6;
+          activeTarget.element.setAttribute('data-agent-active', 'true');
           activeTarget.element.style.opacity = `${progress}`;
           activeTarget.element.style.visibility = 'visible';
           activeTarget.element.style.transformOrigin = 'center';
@@ -1296,6 +1326,14 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       ctx.restore();
       status = 'done';
       cleanupDOM();
+
+      if (config.name === 'hero') {
+        revealHeroScopeTargets();
+      } else {
+        revealContactScopeTargets();
+        document.documentElement.classList.remove('agent-swarm-active');
+      }
+
       console.log(`swarm run finished: ${config.name}`);
       config.onFinished?.('completed');
       return;
@@ -1427,8 +1465,12 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
         }
       });
 
-      if (config.name === 'hero') revealHeroScopeTargets();
-      else revealContactScopeTargets();
+      if (config.name === 'hero') {
+        revealHeroScopeTargets();
+      } else {
+        revealContactScopeTargets();
+        document.documentElement.classList.remove('agent-swarm-active');
+      }
 
       // Send all agents directly to cursor
       const now = performance.now();

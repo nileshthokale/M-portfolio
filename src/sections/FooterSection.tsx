@@ -50,6 +50,7 @@ export const FooterSection: React.FC = () => {
           <p
             ref={wordmarkRef}
             data-swarm-target="footer-wordmark"
+            data-agent-active="true"
             className="font-display uppercase text-[clamp(2.6rem,6.5vw,5.5rem)] leading-[0.94] tracking-tight text-[#eef0f5] will-change-transform"
           >
             <span className="agent-word" data-word-idx="0">
@@ -195,6 +196,7 @@ export const FooterSection: React.FC = () => {
       {/* Signature Colorful Geometric 3D-Bauhaus Strip at Bottom Edge (Video 00:19) */}
       <div
         data-swarm-target="footer-shapes"
+        data-agent-active="true"
         className="w-full overflow-hidden select-none pointer-events-none"
         aria-hidden="true"
       >
