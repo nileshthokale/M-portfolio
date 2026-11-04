@@ -86,12 +86,8 @@ export default function App() {
             <ServicesSection />
             <ProjectsSection onOpenProject={handleOpenProject} />
             <EducationSkillsSection />
-            {/* Late Sections Container — attached to page layout, scrolls with Contact & Footer */}
-            <div id="late-sections-wrap" className="relative">
-              <div id="late-swarm-mount" className="absolute inset-0 pointer-events-none overflow-hidden z-30" />
-              <ContactSection />
-              <FooterSection />
-            </div>
+            <ContactSection />
+            <FooterSection />
           </>
         )}
       </main>

@@ -6,6 +6,17 @@ interface NavbarProps {
   onNavigateHome?: () => void;
 }
 
+const renderCharSpans = (text: string) => {
+  return text.split('').map((char, index) => (
+    <span
+      key={index}
+      className={`agent-char ${char === ' ' ? 'agent-space' : ''}`}
+    >
+      {char}
+    </span>
+  ));
+};
+
 export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -15,15 +26,22 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-[#000000]/90 backdrop-blur-md border-b border-white/5">
+    <header
+      id="navbar-header"
+      data-swarm-target="nav-header"
+      className="sticky top-0 z-40 w-full bg-[#000000]/90 backdrop-blur-md border-b border-white/5 transition-opacity duration-300"
+    >
       <div className="max-w-[1380px] mx-auto flex items-center justify-between gap-6 px-4 sm:px-12 py-3.5 sm:py-4">
         {/* Zone 1: Brand Wordmark with 44px+ touch target */}
         <a
           href="#top"
           onClick={handleLinkClick}
+          data-swarm-target="nav-logo"
           className="inline-flex items-center min-h-[44px] px-2 -ml-2 rounded-lg font-display text-sm sm:text-base tracking-wider text-[#eef0f5] active:scale-95 active:text-[#ff4fa3] transition-all whitespace-nowrap shrink-0 touch-manipulation"
         >
-          NILESH
+          <span className="agent-word" data-word-idx="0">
+            {renderCharSpans('NILESH')}
+          </span>
         </a>
 
         {/* Zone 2: 4 Uppercase Letter-Spaced Links matching 00:00 of reference video */}
@@ -31,14 +49,17 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
           aria-label="Primary Navigation"
           className="hidden md:flex items-center justify-between gap-12 lg:gap-24 text-xs font-bold uppercase tracking-[0.22em] text-[#eef0f5]/90"
         >
-          {PORTFOLIO_DATA.navLinks.map((link) => (
+          {PORTFOLIO_DATA.navLinks.map((link, idx) => (
             <a
               key={link.href}
               href={link.href}
               onClick={handleLinkClick}
+              data-swarm-target={`nav-link-${idx}`}
               className="relative inline-flex items-center min-h-[44px] px-3 rounded-lg hover:text-[#ff4fa3] active:text-[#ff4fa3] active:scale-95 transition-all whitespace-nowrap shrink-0 touch-manipulation"
             >
-              {link.label}
+              <span className="agent-word" data-word-idx={idx}>
+                {renderCharSpans(link.label)}
+              </span>
             </a>
           ))}
         </nav>
@@ -49,6 +70,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onNavigateHome }) => {
             href={PORTFOLIO_DATA.profile.resumePdfUrl}
             target="_blank"
             rel="noopener noreferrer"
+            data-swarm-target="nav-resume"
             className="hidden sm:inline-flex items-center justify-center min-h-[44px] px-5 py-2 text-[11px] font-bold uppercase tracking-widest text-[#eef0f5]/85 rounded-full border border-white/20 hover:border-[#ff4fa3] hover:text-white active:scale-95 active:border-[#ff4fa3] active:bg-white/10 transition-all whitespace-nowrap shrink-0 touch-manipulation"
           >
             RESUME PDF

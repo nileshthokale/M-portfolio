@@ -4,27 +4,15 @@ import { ArrowDown } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 import { MagneticButton } from '../components/MagneticButton';
 
-// Helper to render text as word-wrapped, character-level spans for letter-by-letter typing
 const renderCharSpans = (text: string) => {
-  const words = text.split(/(\s+)/);
-  return words.map((w, idx) => {
-    if (/^\s+$/.test(w)) {
-      return (
-        <span key={idx} className="agent-char agent-space">
-          {w}
-        </span>
-      );
-    }
-    return (
-      <span key={idx} className="agent-word">
-        {Array.from(w).map((ch, cIdx) => (
-          <span key={cIdx} className="agent-char">
-            {ch}
-          </span>
-        ))}
-      </span>
-    );
-  });
+  return text.split('').map((char, index) => (
+    <span
+      key={index}
+      className={`agent-char ${char === ' ' ? 'agent-space' : ''}`}
+    >
+      {char}
+    </span>
+  ));
 };
 
 export const HeroSection: React.FC = () => {
@@ -32,39 +20,38 @@ export const HeroSection: React.FC = () => {
   const titleWrapRef = useRef<HTMLDivElement | null>(null);
   const bottomRowRef = useRef<HTMLDivElement | null>(null);
 
-  // Smooth 60fps scroll parallax on the full-screen hero as user scrolls down
   useEffect(() => {
-    let rafId = 0;
+    let ticking = false;
+    let rafId: number;
 
-    const updateHeroScroll = () => {
-      const y = window.scrollY || 0;
+    const updateParallax = () => {
+      const scrollY = window.scrollY || window.pageYOffset;
       const vh = window.innerHeight || 900;
-      const progress = Math.max(0, Math.min(1, y / vh));
 
-      if (titleWrapRef.current) {
-        const translateY = progress * -70;
-        const scale = 1 - progress * 0.06;
-        const opacity = Math.max(0, 1 - progress * 1.25);
-        titleWrapRef.current.style.transform = `translate3d(0px, ${translateY.toFixed(1)}px, 0) scale(${scale.toFixed(3)})`;
-        titleWrapRef.current.style.opacity = `${opacity.toFixed(2)}`;
-      }
+      if (scrollY <= vh * 1.2) {
+        if (titleWrapRef.current) {
+          const titleY = scrollY * 0.18;
+          titleWrapRef.current.style.transform = `translate3d(0, ${titleY}px, 0)`;
+        }
 
-      if (bottomRowRef.current) {
-        const translateY = progress * -40;
-        const opacity = Math.max(0, 1 - progress * 1.4);
-        bottomRowRef.current.style.transform = `translate3d(0px, ${translateY.toFixed(1)}px, 0)`;
-        bottomRowRef.current.style.opacity = `${opacity.toFixed(2)}`;
+        if (bottomRowRef.current) {
+          const rowY = scrollY * 0.08;
+          bottomRowRef.current.style.transform = `translate3d(0, ${rowY}px, 0)`;
+        }
       }
+      ticking = false;
     };
 
     const onScroll = () => {
-      cancelAnimationFrame(rafId);
-      rafId = requestAnimationFrame(updateHeroScroll);
+      if (!ticking) {
+        ticking = true;
+        rafId = requestAnimationFrame(updateParallax);
+      }
     };
 
-    updateHeroScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
     window.addEventListener('resize', onScroll, { passive: true });
+    updateParallax();
 
     return () => {
       cancelAnimationFrame(rafId);
@@ -80,9 +67,6 @@ export const HeroSection: React.FC = () => {
       className="relative min-h-[calc(100vh-80px)] w-full max-w-[1440px] mx-auto flex flex-col justify-between pt-10 sm:pt-16 pb-6 px-4 sm:px-8 overflow-hidden"
       aria-labelledby="hero-heading"
     >
-      {/* Hero Swarm Mount — Canvas is attached here so it stays inside Hero on scroll */}
-      <div id="hero-swarm-mount" className="absolute inset-0 pointer-events-none overflow-hidden z-30" />
-
       {/* Subtle Ambient Purple/Pink Glow */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[680px] h-[380px] rounded-full opacity-25 blur-[135px]"
@@ -92,14 +76,10 @@ export const HeroSection: React.FC = () => {
         aria-hidden="true"
       />
 
-      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" (Built LAST by 3 agents) */}
+      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" (Built LAST by 3 agents in parallel) */}
       <div ref={titleWrapRef} className="w-full overflow-hidden text-center pt-2 sm:pt-6 will-change-transform">
-        <motion.h1
+        <h1
           id="hero-heading"
-          data-swarm-target="hero-heading"
-          initial={{ y: '90%', opacity: 0 }}
-          animate={{ y: '0%', opacity: 1 }}
-          transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           className="w-full font-display uppercase hero-title-gradient text-[clamp(2.4rem,9.1vw,8.8rem)] tracking-tight leading-[0.94] sm:whitespace-nowrap select-none"
         >
           <span className="agent-word" data-word-idx="0">
@@ -122,7 +102,7 @@ export const HeroSection: React.FC = () => {
             <span className="agent-char">S</span>
             <span className="agent-char">H</span>
           </span>
-        </motion.h1>
+        </h1>
       </div>
 
       {/* Center / Lower Full-Screen Row: Left Uppercase Subtitle | Right Glowing Gradient "CONTACT ME" Pill */}
@@ -151,15 +131,16 @@ export const HeroSection: React.FC = () => {
         </motion.div>
 
         <motion.div
-          data-swarm-target="hero-button"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.22 }}
           className="flex items-center gap-4 shrink-0"
         >
-          <MagneticButton variant="gradient" href="#contact">
-            CONTACT ME
-          </MagneticButton>
+          <div data-swarm-target="hero-button">
+            <MagneticButton variant="gradient" href="#contact">
+              CONTACT ME
+            </MagneticButton>
+          </div>
         </motion.div>
       </div>
 

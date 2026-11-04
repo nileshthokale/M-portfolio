@@ -56,7 +56,8 @@ textarea,
 }
 
 /* Video-matched hero metallic silver-white gradient text */
-.hero-title-gradient {
+.hero-title-gradient,
+.hero-title-gradient .agent-word {
   background: linear-gradient(180deg, #ffffff 0%, #f1f3f9 42%, #6e7382 100%);
   -webkit-background-clip: text;
   background-clip: text;
@@ -180,6 +181,16 @@ textarea,
   white-space: nowrap;
 }
 
+html.agent-swarm-active .agent-char:not([data-char-revealed]) {
+  opacity: 0 !important;
+  visibility: hidden !important;
+}
+
+html.agent-swarm-active .agent-char[data-char-revealed] {
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
@@ -194,7 +205,9 @@ textarea,
     visibility: visible !important;
   }
 
-  .agent-char {
+  .agent-char,
+  html.agent-swarm-active .agent-char {
     opacity: 1 !important;
+    visibility: visible !important;
   }
 }
