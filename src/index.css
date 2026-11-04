@@ -155,15 +155,29 @@ textarea,
 }
 
 /* Hide scrollbars utility */
-.no-scrollbar::-webkit-scrollbar {
+.no-scrollbar::-webkit-scrollbar,
+.no-scrollbar *::-webkit-scrollbar {
   display: none !important;
   width: 0 !important;
   height: 0 !important;
+  background: transparent !important;
 }
 
-.no-scrollbar {
+.no-scrollbar,
+.no-scrollbar * {
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
+}
+
+/* Agent Swarm: Character & Word spans */
+.agent-char {
+  display: inline;
+  transition: opacity 120ms ease;
+}
+
+.agent-word {
+  display: inline-block;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -172,5 +186,15 @@ textarea,
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  /* Force all swarm targets visible when motion is reduced */
+  html.agent-swarm-active [data-swarm-target] {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+
+  .agent-char {
+    opacity: 1 !important;
   }
 }

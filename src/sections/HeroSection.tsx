@@ -4,6 +4,29 @@ import { ArrowDown } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 import { MagneticButton } from '../components/MagneticButton';
 
+// Helper to render text as word-wrapped, character-level spans for letter-by-letter typing
+const renderCharSpans = (text: string) => {
+  const words = text.split(/(\s+)/);
+  return words.map((w, idx) => {
+    if (/^\s+$/.test(w)) {
+      return (
+        <span key={idx} className="agent-char agent-space">
+          {w}
+        </span>
+      );
+    }
+    return (
+      <span key={idx} className="agent-word">
+        {Array.from(w).map((ch, cIdx) => (
+          <span key={cIdx} className="agent-char">
+            {ch}
+          </span>
+        ))}
+      </span>
+    );
+  });
+};
+
 export const HeroSection: React.FC = () => {
   const sectionRef = useRef<HTMLElement | null>(null);
   const titleWrapRef = useRef<HTMLDivElement | null>(null);
@@ -57,6 +80,9 @@ export const HeroSection: React.FC = () => {
       className="relative min-h-[calc(100vh-80px)] w-full max-w-[1440px] mx-auto flex flex-col justify-between pt-10 sm:pt-16 pb-6 px-4 sm:px-8 overflow-hidden"
       aria-labelledby="hero-heading"
     >
+      {/* Hero Swarm Mount — Canvas is attached here so it stays inside Hero on scroll */}
+      <div id="hero-swarm-mount" className="absolute inset-0 pointer-events-none overflow-hidden z-30" />
+
       {/* Subtle Ambient Purple/Pink Glow */}
       <div
         className="pointer-events-none absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[680px] h-[380px] rounded-full opacity-25 blur-[135px]"
@@ -66,16 +92,36 @@ export const HeroSection: React.FC = () => {
         aria-hidden="true"
       />
 
-      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" */}
+      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" (Built LAST by 3 agents) */}
       <div ref={titleWrapRef} className="w-full overflow-hidden text-center pt-2 sm:pt-6 will-change-transform">
         <motion.h1
           id="hero-heading"
+          data-swarm-target="hero-heading"
           initial={{ y: '90%', opacity: 0 }}
           animate={{ y: '0%', opacity: 1 }}
           transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           className="w-full font-display uppercase hero-title-gradient text-[clamp(2.4rem,9.1vw,8.8rem)] tracking-tight leading-[0.94] sm:whitespace-nowrap select-none"
         >
-          {PORTFOLIO_DATA.profile.heroHeading}
+          <span className="agent-word" data-word-idx="0">
+            <span className="agent-char">H</span>
+            <span className="agent-char">I</span>
+            <span className="agent-char">,</span>
+          </span>
+          <span className="agent-char agent-space"> </span>
+          <span className="agent-word" data-word-idx="1">
+            <span className="agent-char">I</span>
+            <span className="agent-char">&apos;</span>
+            <span className="agent-char">M</span>
+          </span>
+          <span className="agent-char agent-space"> </span>
+          <span className="agent-word" data-word-idx="2">
+            <span className="agent-char">N</span>
+            <span className="agent-char">I</span>
+            <span className="agent-char">L</span>
+            <span className="agent-char">E</span>
+            <span className="agent-char">S</span>
+            <span className="agent-char">H</span>
+          </span>
         </motion.h1>
       </div>
 
@@ -90,15 +136,22 @@ export const HeroSection: React.FC = () => {
           transition={{ duration: 0.65, delay: 0.15 }}
           className="max-w-[40ch] text-center sm:text-left"
         >
-          <p className="text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-[0.06em] leading-relaxed text-[#eef0f5]">
-            {PORTFOLIO_DATA.profile.heroSubtitle}
+          <p
+            data-swarm-target="hero-subtitle"
+            className="text-xs sm:text-sm md:text-base font-extrabold uppercase tracking-[0.06em] leading-relaxed text-[#eef0f5]"
+          >
+            {renderCharSpans(PORTFOLIO_DATA.profile.heroSubtitle)}
           </p>
-          <p className="mt-3 text-xs sm:text-sm text-[#eef0f5]/65 font-mono-num">
-            {PORTFOLIO_DATA.profile.location} · B.C.S. (CGPA 7.09) · M.Sc. Data Science (SPPU)
+          <p
+            data-swarm-target="hero-location"
+            className="mt-3 text-xs sm:text-sm text-[#eef0f5]/65 font-mono-num"
+          >
+            {renderCharSpans(`${PORTFOLIO_DATA.profile.location} · B.C.S. (CGPA 7.09) · M.Sc. Data Science (SPPU)`)}
           </p>
         </motion.div>
 
         <motion.div
+          data-swarm-target="hero-button"
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.65, delay: 0.22 }}
@@ -112,9 +165,12 @@ export const HeroSection: React.FC = () => {
 
       {/* Bottom Scroll Cue anchored at bottom of 100vh Hero */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-2 px-2 sm:px-6 pt-4 border-t border-white/10 text-[11px] font-mono-num uppercase tracking-[0.2em] text-[#eef0f5]/55">
-        <span className="text-center sm:text-left">GOKALIFREE.IN · CYBERSECURITY &amp; WEB ENGINEERING</span>
+        <span data-swarm-target="hero-bottom" className="text-center sm:text-left">
+          {renderCharSpans('GOKALIFREE.IN · CYBERSECURITY & WEB ENGINEERING')}
+        </span>
         <a
           href="#about"
+          data-swarm-target="hero-explore"
           className="inline-flex items-center gap-2 min-h-[44px] px-4 py-2 rounded-full text-[#eef0f5]/80 hover:text-white active:bg-white/10 active:scale-95 transition-all touch-manipulation"
         >
           <span>SCROLL TO EXPLORE</span>

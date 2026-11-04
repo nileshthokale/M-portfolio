@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Analytics } from '@vercel/analytics/react';
+import { AgentSwarm } from './components/AgentSwarm';
 import { PORTFOLIO_DATA } from './data/portfolio';
 import { Navbar } from './sections/Navbar';
 import { HeroSection } from './sections/HeroSection';
@@ -19,15 +20,24 @@ export default function App() {
     return match ? match[1] : null;
   });
 
-  // Ensure the page always starts at top on initial load/refresh if no specific hash
+  // Ensure the page always starts at top on initial load/refresh, never opening at #about or projects
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if ('scrollRestoration' in window.history) {
         window.history.scrollRestoration = 'manual';
       }
-      if (!window.location.hash) {
-        window.scrollTo(0, 0);
+      if (window.location.hash && window.location.hash !== '#top') {
+        window.history.replaceState(null, '', window.location.pathname);
       }
+      window.scrollTo(0, 0);
+
+      const forceTop = () => window.scrollTo(0, 0);
+      window.addEventListener('load', forceTop);
+      const timer = setTimeout(forceTop, 50);
+      return () => {
+        window.removeEventListener('load', forceTop);
+        clearTimeout(timer);
+      };
     }
   }, []);
 
@@ -76,12 +86,17 @@ export default function App() {
             <ServicesSection />
             <ProjectsSection onOpenProject={handleOpenProject} />
             <EducationSkillsSection />
-            <ContactSection />
+            {/* Late Sections Container — attached to page layout, scrolls with Contact & Footer */}
+            <div id="late-sections-wrap" className="relative">
+              <div id="late-swarm-mount" className="absolute inset-0 pointer-events-none overflow-hidden z-30" />
+              <ContactSection />
+              <FooterSection />
+            </div>
           </>
         )}
       </main>
 
-      <FooterSection />
+      <AgentSwarm />
       <Analytics />
     </div>
   );

@@ -40,7 +40,6 @@ export const ContactSection: React.FC = () => {
       const rect = el.getBoundingClientRect();
       const vh = window.innerHeight || 800;
 
-      // Progress from 0 when section enters bottom of viewport to 1 when well inside viewport
       const reveal = Math.max(0, Math.min(1, (vh * 0.92 - rect.top) / (vh * 0.55)));
       const parallax = (vh * 0.5 - rect.top) / vh;
 
@@ -151,32 +150,56 @@ export const ContactSection: React.FC = () => {
       {/* Top-Right Floating 3D Gold Lightning Bolt (Video 00:17) */}
       <div
         ref={boltRef}
+        data-swarm-target="contact-figure-bolt"
         className="hidden sm:block absolute top-4 right-8 lg:right-16 w-28 h-28 lg:w-36 lg:h-36 pointer-events-none will-change-transform"
       >
         <GlossyShape3D variant="gold-bolt" className="w-full h-full" />
       </div>
 
       <div className="relative z-10 max-w-[1260px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
-        {/* Left Column: Giant Stacked "LET'S / GET IN / TOUCH" with Staggered Scroll Reveal */}
+        {/* Left Column: Giant Stacked "LET'S / GET IN / TOUCH" */}
         <div className="lg:col-span-5">
           <h2
             id="contact-heading"
+            data-swarm-target="contact-heading"
             className="font-display uppercase text-[clamp(2.8rem,6.5vw,5.6rem)] leading-[0.94] tracking-tight text-[#05060a] flex flex-col"
           >
             <span ref={line1Ref} className="block will-change-transform">
-              LET&apos;S
+              <span className="agent-word">
+                <span className="agent-char">L</span>
+                <span className="agent-char">E</span>
+                <span className="agent-char">T</span>
+                <span className="agent-char">&apos;</span>
+                <span className="agent-char">S</span>
+              </span>
             </span>
             <span ref={line2Ref} className="block will-change-transform">
-              GET IN
+              <span className="agent-word">
+                <span className="agent-char">G</span>
+                <span className="agent-char">E</span>
+                <span className="agent-char">T</span>
+              </span>
+              <span className="agent-char agent-space"> </span>
+              <span className="agent-word">
+                <span className="agent-char">I</span>
+                <span className="agent-char">N</span>
+              </span>
             </span>
             <span ref={line3Ref} className="block will-change-transform">
-              TOUCH
+              <span className="agent-word">
+                <span className="agent-char">T</span>
+                <span className="agent-char">O</span>
+                <span className="agent-char">U</span>
+                <span className="agent-char">C</span>
+                <span className="agent-char">H</span>
+              </span>
             </span>
           </h2>
 
           <div className="mt-7 flex flex-col items-start gap-1.5">
             <a
               href={`mailto:${PORTFOLIO_DATA.profile.email}`}
+              data-swarm-target="contact-link-email"
               className="inline-flex items-center gap-2.5 min-h-[46px] px-2 -ml-2 rounded-xl text-xl sm:text-2xl font-extrabold text-[#7b5cff] hover:text-[#ff4fa3] active:text-[#ff4fa3] active:bg-[#7b5cff]/10 active:scale-[0.98] transition-all break-all touch-manipulation"
             >
               <Mail className="w-5 h-5 shrink-0" />
@@ -185,6 +208,7 @@ export const ContactSection: React.FC = () => {
 
             <a
               href={`tel:${PORTFOLIO_DATA.profile.phone.replace(/\s+/g, '')}`}
+              data-swarm-target="contact-link-phone"
               className="inline-flex items-center gap-2.5 min-h-[44px] px-2 -ml-2 rounded-xl text-base sm:text-lg font-bold font-mono-num text-[#05060a]/85 hover:text-[#7b5cff] active:text-[#7b5cff] active:bg-[#7b5cff]/10 active:scale-[0.98] transition-all touch-manipulation"
             >
               <Phone className="w-4 h-4 shrink-0 text-[#7b5cff]" />
@@ -192,7 +216,10 @@ export const ContactSection: React.FC = () => {
             </a>
           </div>
 
-          <p className="mt-4 text-sm sm:text-base font-medium text-[#05060a]/75 max-w-[38ch]">
+          <p
+            data-swarm-target="contact-intro"
+            className="mt-4 text-sm sm:text-base font-medium text-[#05060a]/75 max-w-[38ch]"
+          >
             Available for entry-level Software Engineering, Web Development, Cybersecurity, and Data Science roles, plus freelance projects.
           </p>
 
@@ -202,6 +229,7 @@ export const ContactSection: React.FC = () => {
               href={PORTFOLIO_DATA.profile.socials.portfolio}
               target="_blank"
               rel="noopener noreferrer"
+              data-swarm-target="contact-chip"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#7b5cff]/10 border border-black/10 hover:border-[#7b5cff]/30 text-xs font-semibold text-[#05060a] hover:text-[#7b5cff] active:scale-95 transition-all touch-manipulation"
             >
               <Globe className="w-3.5 h-3.5 text-[#ff9a3c]" />
@@ -212,6 +240,7 @@ export const ContactSection: React.FC = () => {
               href={PORTFOLIO_DATA.profile.socials.github}
               target="_blank"
               rel="noopener noreferrer"
+              data-swarm-target="contact-chip"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-black/10 border border-black/10 hover:border-black/25 text-xs font-semibold text-[#05060a] active:scale-95 transition-all touch-manipulation"
             >
               <Github className="w-3.5 h-3.5" />
@@ -222,6 +251,7 @@ export const ContactSection: React.FC = () => {
               href={PORTFOLIO_DATA.profile.socials.instagram}
               target="_blank"
               rel="noopener noreferrer"
+              data-swarm-target="contact-chip"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#ff4fa3]/10 border border-black/10 hover:border-[#ff4fa3]/30 text-xs font-semibold text-[#05060a] hover:text-[#ff4fa3] active:scale-95 transition-all touch-manipulation"
             >
               <Instagram className="w-3.5 h-3.5 text-[#ff4fa3]" />
@@ -232,6 +262,7 @@ export const ContactSection: React.FC = () => {
               href={PORTFOLIO_DATA.profile.socials.linkedin}
               target="_blank"
               rel="noopener noreferrer"
+              data-swarm-target="contact-chip"
               className="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-black/5 hover:bg-[#0077b5]/10 border border-black/10 hover:border-[#0077b5]/30 text-xs font-semibold text-[#05060a] hover:text-[#0077b5] active:scale-95 transition-all touch-manipulation"
             >
               <Linkedin className="w-3.5 h-3.5 text-[#0077b5]" />
@@ -242,6 +273,7 @@ export const ContactSection: React.FC = () => {
           {/* Bottom-Left Floating 3D Purple Hand (Video 00:18) */}
           <div
             ref={handRef}
+            data-swarm-target="contact-figure-hand"
             className="hidden sm:block mt-6 w-24 h-24 lg:w-32 lg:h-32 pointer-events-none will-change-transform"
           >
             <GlossyShape3D variant="purple-hand" className="w-full h-full" />
@@ -251,7 +283,7 @@ export const ContactSection: React.FC = () => {
         {/* Right Column: Minimalist Underline Contact Form (Video 00:17-00:18) */}
         <div ref={formWrapRef} className="lg:col-span-7 will-change-transform">
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            <div>
+            <div data-swarm-target="contact-field">
               <label
                 htmlFor="contact-name"
                 className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -277,7 +309,7 @@ export const ContactSection: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div>
+              <div data-swarm-target="contact-field">
                 <label
                   htmlFor="contact-email"
                   className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -302,7 +334,7 @@ export const ContactSection: React.FC = () => {
                 )}
               </div>
 
-              <div>
+              <div data-swarm-target="contact-field">
                 <label
                   htmlFor="contact-phone"
                   className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -321,7 +353,7 @@ export const ContactSection: React.FC = () => {
               </div>
             </div>
 
-            <div>
+            <div data-swarm-target="contact-field">
               <label
                 htmlFor="contact-message"
                 className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -350,6 +382,7 @@ export const ContactSection: React.FC = () => {
               <button
                 type="submit"
                 disabled={submitting}
+                data-swarm-target="contact-send-btn"
                 className="w-full min-h-[52px] py-4 px-8 rounded-full border border-[#05060a] text-[#05060a] font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-[#05060a] hover:text-[#eef0f5] active:bg-[#05060a] active:text-[#eef0f5] active:scale-[0.97] transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation select-none"
               >
                 <Send className="w-4 h-4" />

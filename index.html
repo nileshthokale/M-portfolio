@@ -1,8 +1,27 @@
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en" class="dark agent-swarm-active">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <script>
+      // 1. Immediately reset scroll to top on entry/refresh so site opens at Hero, not #about or #projects
+      try {
+        if ('scrollRestoration' in history) {
+          history.scrollRestoration = 'manual';
+        }
+        if (window.location.hash && window.location.hash !== '#top') {
+          history.replaceState(null, '', window.location.pathname);
+        }
+        window.scrollTo(0, 0);
+      } catch (e) {}
+
+      // 2. Immediate reduced-motion & JS safety check before first paint
+      try {
+        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+          document.documentElement.classList.remove('agent-swarm-active');
+        }
+      } catch (e) {}
+    </script>
     <title>Nilesh — 3D Cybersecurity &amp; Data Science Portfolio | GoKaliFree</title>
     <meta
       name="description"
@@ -23,6 +42,41 @@
     />
     <meta name="theme-color" content="#05060a" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Agent Swarm: pre-paint hiding of unbuilt targets so agents can build them piece by piece -->
+    <style id="agent-swarm-preload">
+      html.agent-swarm-active [data-swarm-target]:not([data-agent-active]) {
+        opacity: 0 !important;
+        visibility: hidden !important;
+        transition: none !important;
+      }
+      html.agent-swarm-active .agent-char:not([data-char-revealed]) {
+        opacity: 0 !important;
+        display: inline;
+      }
+      html.agent-swarm-active .agent-char[data-char-revealed] {
+        opacity: 1 !important;
+        display: inline;
+      }
+      .agent-char {
+        display: inline;
+      }
+      .agent-word {
+        display: inline-block;
+        white-space: nowrap;
+      }
+    </style>
+    <noscript>
+      <style>
+        html.agent-swarm-active [data-swarm-target] {
+          opacity: 1 !important;
+          visibility: visible !important;
+        }
+        html.agent-swarm-active .agent-char {
+          opacity: 1 !important;
+        }
+      </style>
+    </noscript>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

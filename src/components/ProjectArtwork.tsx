@@ -195,7 +195,10 @@ const GoKaliFreeToolsHub: React.FC = () => {
       </div>
 
       {/* Tools Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 my-2 flex-1 overflow-y-auto no-scrollbar max-h-[220px] sm:max-h-[240px] pr-1">
+      <div
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 my-2 flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0 max-h-[220px] sm:max-h-[240px] pr-1"
+      >
         {filteredTools.map((tool) => (
           <div
             key={tool.name}
@@ -352,7 +355,11 @@ const GoKaliFreeTerminalSimulator: React.FC = () => {
       </div>
 
       {/* Output Console History */}
-      <div ref={consoleRef} className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 pr-1 py-1 text-[10.5px] leading-tight">
+      <div
+        ref={consoleRef}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        className="flex-1 overflow-y-auto no-scrollbar [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden [&::-webkit-scrollbar]:w-0 [&::-webkit-scrollbar]:h-0 space-y-1.5 pr-1 py-1 text-[10.5px] leading-tight"
+      >
         {history.map((h, i) => (
           <div key={i} className="space-y-0.5">
             <div className="text-[#4ade80] flex items-center gap-1">

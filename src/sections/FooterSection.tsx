@@ -49,13 +49,32 @@ export const FooterSection: React.FC = () => {
         <div className="lg:col-span-6">
           <p
             ref={wordmarkRef}
+            data-swarm-target="footer-wordmark"
             className="font-display uppercase text-[clamp(2.6rem,6.5vw,5.5rem)] leading-[0.94] tracking-tight text-[#eef0f5] will-change-transform"
           >
-            NILESH
+            <span className="agent-word" data-word-idx="0">
+              <span className="agent-char">N</span>
+              <span className="agent-char">I</span>
+              <span className="agent-char">L</span>
+              <span className="agent-char">E</span>
+              <span className="agent-char">S</span>
+              <span className="agent-char">H</span>
+            </span>
             <br />
-            THOKALE
+            <span className="agent-word" data-word-idx="1">
+              <span className="agent-char">T</span>
+              <span className="agent-char">H</span>
+              <span className="agent-char">O</span>
+              <span className="agent-char">K</span>
+              <span className="agent-char">A</span>
+              <span className="agent-char">L</span>
+              <span className="agent-char">E</span>
+            </span>
           </p>
-          <p className="mt-4 text-xs sm:text-sm text-[#eef0f5]/65 max-w-md leading-relaxed">
+          <p
+            data-swarm-target="footer-desc"
+            className="mt-4 text-xs sm:text-sm text-[#eef0f5]/65 max-w-md leading-relaxed"
+          >
             {PORTFOLIO_DATA.profile.role} at {PORTFOLIO_DATA.profile.university} · Creator of{' '}
             <a
               href="https://gokalifree.in"
@@ -69,7 +88,7 @@ export const FooterSection: React.FC = () => {
         </div>
 
         {/* SOCIAL Column */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3" data-swarm-target="footer-col-social">
           <h3 className="font-display text-xs uppercase tracking-widest text-[#eef0f5]">
             SOCIAL
           </h3>
@@ -134,6 +153,7 @@ export const FooterSection: React.FC = () => {
                 href={PORTFOLIO_DATA.profile.resumePdfUrl}
                 target="_blank"
                 rel="noopener noreferrer"
+                data-swarm-target="footer-download"
                 className="inline-flex items-center min-h-[40px] px-2 -ml-2 rounded-lg text-[#ff9a3c] hover:text-[#ff4fa3] active:bg-white/10 active:scale-[0.98] transition-all font-semibold touch-manipulation text-xs tracking-wider uppercase"
               >
                 Download Resume (PDF) →
@@ -143,7 +163,7 @@ export const FooterSection: React.FC = () => {
         </div>
 
         {/* CONTACT Column */}
-        <div className="lg:col-span-3">
+        <div className="lg:col-span-3" data-swarm-target="footer-col-contact">
           <h3 className="font-display text-xs uppercase tracking-widest text-[#eef0f5]">
             CONTACT
           </h3>
@@ -173,26 +193,30 @@ export const FooterSection: React.FC = () => {
       </div>
 
       {/* Signature Colorful Geometric 3D-Bauhaus Strip at Bottom Edge (Video 00:19) */}
-      <div className="w-full overflow-hidden select-none pointer-events-none" aria-hidden="true">
+      <div
+        data-swarm-target="footer-shapes"
+        className="w-full overflow-hidden select-none pointer-events-none"
+        aria-hidden="true"
+      >
         <svg viewBox="0 0 1440 160" className="w-full h-auto block">
-          <path d="M20 20 L140 140 M140 20 L20 140" stroke="#9333ea" strokeWidth="36" strokeLinecap="round" />
-          <circle cx="205" cy="52" r="28" fill="#a855f7" />
-          <circle cx="265" cy="52" r="28" fill="#a855f7" />
-          <circle cx="205" cy="112" r="28" fill="#a855f7" />
-          <circle cx="265" cy="112" r="28" fill="#a855f7" />
-          <path d="M320 20 H390 V90 A45 45 0 0 1 300 90 V70 H345 V90 A10 10 0 0 0 365 90 V20 Z" fill="#3b82f6" />
-          <circle cx="485" cy="82" r="64" fill="#7b5cff" />
-          <rect x="575" y="20" width="44" height="124" rx="8" fill="#ff9a3c" />
-          <path d="M620 20 H690 A34 34 0 0 1 690 88 H620 Z" fill="#ff9a3c" />
-          <polygon points="620,84 715,144 655,144 620,110" fill="#ff9a3c" />
-          <polygon points="740,144 740,20 860,144" fill="#3b82f6" />
-          <polygon points="790,20 885,20 885,115" fill="#60a5fa" />
-          <polygon points="915,20 1045,82 915,144" fill="#ff9a3c" />
-          <polygon points="1045,20 915,82 1045,144" fill="#fb923c" />
-          <rect x="1075" y="20" width="140" height="44" rx="10" fill="#a855f7" />
-          <polygon points="1075,144 1145,74 1215,144" fill="#9333ea" />
-          <circle cx="1325" cy="82" r="64" fill="#ff4fa3" />
-          <circle cx="1325" cy="82" r="22" fill="#000000" />
+          <path data-swarm-shape="0" d="M20 20 L140 140 M140 20 L20 140" stroke="#9333ea" strokeWidth="36" strokeLinecap="round" />
+          <circle data-swarm-shape="1" cx="205" cy="52" r="28" fill="#a855f7" />
+          <circle data-swarm-shape="2" cx="265" cy="52" r="28" fill="#a855f7" />
+          <circle data-swarm-shape="3" cx="205" cy="112" r="28" fill="#a855f7" />
+          <circle data-swarm-shape="4" cx="265" cy="112" r="28" fill="#a855f7" />
+          <path data-swarm-shape="5" d="M320 20 H390 V90 A45 45 0 0 1 300 90 V70 H345 V90 A10 10 0 0 0 365 90 V20 Z" fill="#3b82f6" />
+          <circle data-swarm-shape="6" cx="485" cy="82" r="64" fill="#7b5cff" />
+          <rect data-swarm-shape="7" x="575" y="20" width="44" height="124" rx="8" fill="#ff9a3c" />
+          <path data-swarm-shape="8" d="M620 20 H690 A34 34 0 0 1 690 88 H620 Z" fill="#ff9a3c" />
+          <polygon data-swarm-shape="9" points="620,84 715,144 655,144 620,110" fill="#ff9a3c" />
+          <polygon data-swarm-shape="10" points="740,144 740,20 860,144" fill="#3b82f6" />
+          <polygon data-swarm-shape="11" points="790,20 885,20 885,115" fill="#60a5fa" />
+          <polygon data-swarm-shape="12" points="915,20 1045,82 915,144" fill="#ff9a3c" />
+          <polygon data-swarm-shape="13" points="1045,20 915,82 1045,144" fill="#fb923c" />
+          <rect data-swarm-shape="14" x="1075" y="20" width="140" height="44" rx="10" fill="#a855f7" />
+          <polygon data-swarm-shape="15" points="1075,144 1145,74 1215,144" fill="#9333ea" />
+          <circle data-swarm-shape="16" cx="1325" cy="82" r="64" fill="#ff4fa3" />
+          <circle data-swarm-shape="17" cx="1325" cy="82" r="22" fill="#000000" />
         </svg>
       </div>
     </footer>
