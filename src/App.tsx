@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { PORTFOLIO_DATA } from './data/portfolio';
 import { Navbar } from './sections/Navbar';
 import { HeroSection } from './sections/HeroSection';
@@ -17,6 +18,18 @@ export default function App() {
     const match = window.location.pathname.match(/^\/projects\/([^/]+)/);
     return match ? match[1] : null;
   });
+
+  // Ensure the page always starts at top on initial load/refresh if no specific hash
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if ('scrollRestoration' in window.history) {
+        window.history.scrollRestoration = 'manual';
+      }
+      if (!window.location.hash) {
+        window.scrollTo(0, 0);
+      }
+    }
+  }, []);
 
   // Sync browser history on project route navigation
   useEffect(() => {
@@ -69,6 +82,7 @@ export default function App() {
       </main>
 
       <FooterSection />
+      <Analytics />
     </div>
   );
 }

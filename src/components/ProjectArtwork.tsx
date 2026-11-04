@@ -195,7 +195,7 @@ const GoKaliFreeToolsHub: React.FC = () => {
       </div>
 
       {/* Tools Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 my-2 flex-1 overflow-y-auto max-h-[220px] sm:max-h-[240px] pr-1">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-2.5 my-2 flex-1 overflow-y-auto no-scrollbar max-h-[220px] sm:max-h-[240px] pr-1">
         {filteredTools.map((tool) => (
           <div
             key={tool.name}
@@ -269,7 +269,8 @@ const GoKaliFreeTerminalSimulator: React.FC = () => {
     },
   ]);
   const [inputVal, setInputVal] = useState<string>('');
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const consoleRef = useRef<HTMLDivElement | null>(null);
+  const isInitialMount = useRef(true);
 
   const executeCmd = (cmdToRun: string) => {
     const raw = cmdToRun.trim();
@@ -305,7 +306,13 @@ const GoKaliFreeTerminalSimulator: React.FC = () => {
   };
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
+    if (consoleRef.current) {
+      consoleRef.current.scrollTop = consoleRef.current.scrollHeight;
+    }
   }, [history]);
 
   return (
@@ -345,7 +352,7 @@ const GoKaliFreeTerminalSimulator: React.FC = () => {
       </div>
 
       {/* Output Console History */}
-      <div className="flex-1 overflow-y-auto space-y-1.5 pr-1 py-1 text-[10.5px] leading-tight">
+      <div ref={consoleRef} className="flex-1 overflow-y-auto no-scrollbar space-y-1.5 pr-1 py-1 text-[10.5px] leading-tight">
         {history.map((h, i) => (
           <div key={i} className="space-y-0.5">
             <div className="text-[#4ade80] flex items-center gap-1">
@@ -357,7 +364,6 @@ const GoKaliFreeTerminalSimulator: React.FC = () => {
             </div>
           </div>
         ))}
-        <div ref={bottomRef} />
       </div>
 
       {/* Live Input Field */}
