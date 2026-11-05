@@ -271,6 +271,12 @@ export function revealAllPageTargets() {
   document.documentElement.classList.remove('agent-swarm-active');
 }
 
+export function cancelAgentSwarm() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new CustomEvent('cancel-agent-swarm'));
+  }
+}
+
 export function ensureCharSpans(el: HTMLElement): HTMLElement[] {
   let spans = Array.from(el.querySelectorAll('.agent-char')) as HTMLElement[];
   if (spans.length > 0) return spans;
@@ -1553,6 +1559,22 @@ export const AgentSwarm: React.FC = () => {
     };
     document.addEventListener('visibilitychange', onVisibilityChange);
 
+    // Cancel active run immediately when mobile navigation menu opens
+    const onCancelSwarm = () => {
+      if (heroRunRef.current?.isActive()) {
+        heroRunRef.current.cancel();
+        heroRunRef.current.destroy();
+      }
+      if (contactRunRef.current?.isActive()) {
+        contactRunRef.current.cancel();
+        contactRunRef.current.destroy();
+      }
+      heroDoneRef.current = true;
+      contactDoneRef.current = true;
+      revealAllPageTargets();
+    };
+    window.addEventListener('cancel-agent-swarm', onCancelSwarm);
+
     // ------------------------------------------------------------------------
     // CREATE HERO RUN INSTANCE
     // ------------------------------------------------------------------------
@@ -1756,6 +1778,7 @@ export const AgentSwarm: React.FC = () => {
       window.removeEventListener('touchstart', onTouchStart);
       window.removeEventListener('scroll', onScrollCheck);
       document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('cancel-agent-swarm', onCancelSwarm);
 
       heroRunRef.current?.destroy();
       contactRunRef.current?.destroy();

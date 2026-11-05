@@ -191,12 +191,50 @@ html.agent-swarm-active .agent-char[data-char-revealed] {
   visibility: visible !important;
 }
 
+/* Mobile Navigation Menu Animations & Fallbacks */
+@keyframes mobileOverlayFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes mobileMenuItemFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mobile-menu-overlay {
+  animation: mobileOverlayFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.mobile-menu-item {
+  opacity: 1;
+  transform: none;
+  animation: mobileMenuItemFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, ::before, ::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+
+  .mobile-menu-overlay,
+  .mobile-menu-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
   }
 
   /* Force all swarm targets visible when motion is reduced */
