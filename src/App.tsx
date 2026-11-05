@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { Analytics } from '@vercel/analytics/react';
-import { AgentSwarm } from './components/AgentSwarm';
 import { PORTFOLIO_DATA } from './data/portfolio';
+import { useDeviceMode } from './lib/deviceMode';
+import { MobileStorytelling } from './components/MobileStorytelling';
 import { Navbar } from './sections/Navbar';
 import { HeroSection } from './sections/HeroSection';
 import { SkillsMarqueeSection } from './sections/SkillsMarqueeSection';
@@ -12,6 +13,11 @@ import { EducationSkillsSection } from './sections/EducationSkillsSection';
 import { ContactSection } from './sections/ContactSection';
 import { FooterSection } from './sections/FooterSection';
 import { ProjectDetailView } from './sections/ProjectDetailView';
+
+// Code splitting: AgentSwarm is ONLY imported and downloaded when desktop mode is active!
+const AgentSwarm = React.lazy(() =>
+  import('./components/AgentSwarm').then((m) => ({ default: m.AgentSwarm }))
+);
 
 export default function App() {
   const [activeProjectSlug, setActiveProjectSlug] = useState<string | null>(() => {
@@ -67,6 +73,8 @@ export default function App() {
     ? PORTFOLIO_DATA.projects.find((p) => p.slug === activeProjectSlug) || null
     : null;
 
+  const deviceMode = useDeviceMode();
+
   return (
     <div className="min-h-screen bg-black text-[#eef0f5] relative selection:bg-[#ff4fa3] selection:text-white">
       <Navbar onNavigateHome={activeProject ? handleBackHome : undefined} />
@@ -92,7 +100,15 @@ export default function App() {
         )}
       </main>
 
-      <AgentSwarm />
+      {/* Device Switch: Desktop gets AI Swarm; Mobile gets Touch Scroll Storytelling */}
+      {deviceMode === 'desktop' ? (
+        <Suspense fallback={null}>
+          <AgentSwarm />
+        </Suspense>
+      ) : (
+        <MobileStorytelling />
+      )}
+
       <Analytics />
     </div>
   );

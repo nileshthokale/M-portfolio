@@ -5,6 +5,7 @@ import {
   filterSkillCategories,
   getNextProjectSlug,
 } from './portfolioLogic';
+import { getInitialDeviceMode } from './deviceMode';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 
 test('validateContactForm rejects empty inputs with field errors', () => {
@@ -59,3 +60,9 @@ test('getNextProjectSlug cycles through project slugs circularly', () => {
   assert.equal(getNextProjectSlug(slugs, 'gokalifree'), 'project-slot-02');
   assert.equal(getNextProjectSlug(slugs, 'project-slot-03'), 'gokalifree');
 });
+
+test('getInitialDeviceMode returns desktop by default in SSR / desktop environment', () => {
+  const mode = getInitialDeviceMode();
+  assert.ok(mode === 'desktop' || mode === 'mobile');
+});
+

@@ -1,0 +1,228 @@
+/* ==========================================================================
+   Mobile Scroll Storytelling Animations & Utilities
+   ========================================================================== */
+
+/* Respect Safe Area Insets & Modern Viewport Units */
+:root {
+  --mobile-hero-height: 100svh;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Prevent horizontal page overflow on small viewports without breaking sticky */
+@media (max-width: 1023px) {
+  html, body {
+    overflow-x: clip;
+    width: 100%;
+    position: relative;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Remove tap highlight color */
+  a, button, [role="button"], input, textarea {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* 2.1 Hero Word Mask Reveal (BUG 2 FIX) */
+.hero-word-mask {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: top;
+  padding-bottom: 0.12em;
+}
+
+.hero-word-inner {
+  display: inline-block;
+  transform: none;
+  opacity: 1;
+  white-space: nowrap;
+}
+
+@keyframes heroWordRise {
+  from {
+    transform: translate3d(0, 110%, 0);
+    opacity: 0;
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+    opacity: 1;
+  }
+}
+
+.hero-word-animate {
+  animation: heroWordRise 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* 2.3 Tap Feedback */
+.tap-active-scale {
+  transform: scale(0.96) !important;
+  transition: transform 0.08s ease-out !important;
+}
+
+/* 2.4 Word-by-Word Scrub in About (BUG 1 FIX: display:inline wraps naturally) */
+.about-scrub-word {
+  display: inline;
+  transition: opacity 0.15s ease, color 0.15s ease;
+}
+
+/* 2.5 Services Grid-Template-Rows Smooth Height Accordion */
+.services-accordion-wrapper {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.services-accordion-wrapper.is-open {
+  grid-template-rows: 1fr;
+}
+
+.services-accordion-content {
+  overflow: hidden;
+}
+
+.services-line-draw {
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.services-line-draw.drawn {
+  transform: scaleX(1);
+}
+
+/* 2.6 Horizontal Scroll Snap Gallery & Skill Chips (BUG 3 FIX) */
+.mobile-snap-container {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.mobile-snap-container::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.mobile-snap-card {
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+  flex-shrink: 0;
+}
+
+/* 2.8 Contact Form Underline Drawing & Floating Label */
+.mobile-form-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #7b5cff, #ff4fa3, #ff9a3c);
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+
+input:focus ~ .mobile-form-line,
+textarea:focus ~ .mobile-form-line {
+  transform: scaleX(1);
+}
+
+/* Form Submit Confetti Shapes Burst */
+.submit-burst-container {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.submit-particle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 9999px;
+  animation: particle-burst 1.2s cubic-bezier(0.12, 0.8, 0.32, 1) forwards;
+}
+
+@keyframes particle-burst {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  60% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--p-dx), var(--p-dy)) scale(0) rotate(var(--p-rot));
+    opacity: 0;
+  }
+}
+
+/* 2.9 Footer Shapes Bounce Drop-in & Tap Spin */
+.footer-shape-drop {
+  animation: footer-shape-bounce 0.65s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@keyframes footer-shape-bounce {
+  0% {
+    transform: translateY(-28px);
+    opacity: 0;
+  }
+  65% {
+    transform: translateY(3px);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.footer-shape-tap-spin {
+  animation: footer-shape-spin 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes footer-shape-spin {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  50% {
+    transform: scale(1.22) rotate(180deg);
+  }
+  100% {
+    transform: scale(1) rotate(360deg);
+  }
+}
+
+/* Prefers-Reduced-Motion: completely flatten animations */
+@media (prefers-reduced-motion: reduce) {
+  .hero-word-inner {
+    transform: none !important;
+    opacity: 1 !important;
+    transition: none !important;
+    animation: none !important;
+  }
+  .about-scrub-word {
+    opacity: 1 !important;
+    transition: none !important;
+  }
+  .services-line-draw {
+    transform: scaleX(1) !important;
+    transition: none !important;
+  }
+  .footer-shape-drop {
+    animation: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}

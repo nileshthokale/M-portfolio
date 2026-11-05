@@ -95,28 +95,28 @@ export const AboutSection: React.FC = () => {
       {/* 4 Corner Glossy 3D Shapes with Scroll Parallax (Matches 00:05-00:06 of reference video) */}
       <div
         ref={topLeftShapeRef}
-        className="hidden sm:block absolute top-10 left-4 lg:left-8 w-28 h-28 lg:w-44 lg:h-44 will-change-transform"
+        className="block absolute top-6 sm:top-10 left-2 sm:left-4 lg:left-8 w-16 h-16 sm:w-28 sm:h-28 lg:w-44 lg:h-44 will-change-transform opacity-75 sm:opacity-100"
       >
         <GlossyShape3D variant="silver-splash" className="w-full h-full animate-float-slow" />
       </div>
 
       <div
         ref={bottomLeftShapeRef}
-        className="hidden sm:block absolute bottom-10 left-6 lg:left-16 w-28 h-28 lg:w-40 lg:h-40 will-change-transform"
+        className="block absolute bottom-6 sm:bottom-10 left-3 sm:left-6 lg:left-16 w-16 h-16 sm:w-28 sm:h-28 lg:w-40 lg:h-40 will-change-transform opacity-75 sm:opacity-100"
       >
         <GlossyShape3D variant="red-heart" className="w-full h-full animate-float-reverse" />
       </div>
 
       <div
         ref={topRightShapeRef}
-        className="hidden sm:block absolute top-8 right-4 lg:right-10 w-28 h-28 lg:w-40 lg:h-40 will-change-transform"
+        className="block absolute top-4 sm:top-8 right-2 sm:right-4 lg:right-10 w-16 h-16 sm:w-28 sm:h-28 lg:w-40 lg:h-40 will-change-transform opacity-75 sm:opacity-100"
       >
         <GlossyShape3D variant="crystal-sphere" className="w-full h-full animate-float-reverse" />
       </div>
 
       <div
         ref={bottomRightShapeRef}
-        className="hidden sm:block absolute bottom-12 right-6 lg:right-14 w-28 h-28 lg:w-44 lg:h-44 will-change-transform"
+        className="block absolute bottom-8 sm:bottom-12 right-3 sm:right-6 lg:right-14 w-16 h-16 sm:w-28 sm:h-28 lg:w-44 lg:h-44 will-change-transform opacity-75 sm:opacity-100"
       >
         <GlossyShape3D variant="violet-flower" className="w-full h-full animate-float-slow" />
       </div>
@@ -133,10 +133,12 @@ export const AboutSection: React.FC = () => {
 
         <div
           ref={textWrapRef}
-          className="mt-8 sm:mt-10 space-y-2.5 text-base sm:text-xl font-bold leading-relaxed text-[#eef0f5] max-w-[54ch] will-change-transform"
+          className="mt-8 sm:mt-10 space-y-2.5 text-base sm:text-xl font-bold leading-relaxed text-[#eef0f5] max-w-[54ch] will-change-transform w-full"
         >
           {PORTFOLIO_DATA.about.lines.map((line, idx) => (
-            <p key={idx}>{line}</p>
+            <p key={idx} className="about-bio-line w-full" data-line-idx={idx}>
+              {line}
+            </p>
           ))}
         </div>
 

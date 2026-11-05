@@ -1,18 +1,140 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ArrowUpRight, BookOpen, Globe } from 'lucide-react';
 import { PORTFOLIO_DATA, ProjectItem } from '../data/portfolio';
 import { MagneticButton } from '../components/MagneticButton';
 import { ProjectArtwork } from '../components/ProjectArtwork';
 
+// Configurable mobile project card behavior:
+// 'auto': stacks if card fits on screen, normal flow otherwise
+// 'stack': forces sticky stack
+// 'flow': forces normal flow for all cards without sticky
+export type ProjectCardMode = 'auto' | 'stack' | 'flow';
+export const PROJECT_CARD_MODE: ProjectCardMode = ('auto' as ProjectCardMode);
+
 interface ProjectsSectionProps {
   onOpenProject: (slug: string) => void;
 }
+
+// Compact Mobile 16:10 Horizontal Swipe Gallery with Dots
+const MobileProjectGallery: React.FC<{
+  project: ProjectItem;
+  isFlagship: boolean;
+  isEmpty: boolean;
+  index: number;
+  onOpen: () => void;
+}> = ({ project, isFlagship, isEmpty, index, onOpen }) => {
+  const [activeSlide, setActiveSlide] = useState(0);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  // Single slide for empty template, full set for flagship
+  const previews = isEmpty ? [project.previews[0]] : project.previews;
+
+  const handleScroll = () => {
+    if (!scrollRef.current) return;
+    const el = scrollRef.current;
+    const slideW = el.clientWidth || 1;
+    const newSlide = Math.round(el.scrollLeft / slideW);
+    setActiveSlide(Math.max(0, Math.min(previews.length - 1, newSlide)));
+  };
+
+  return (
+    <div className="w-full flex flex-col gap-2">
+      <div
+        ref={scrollRef}
+        onScroll={handleScroll}
+        className="w-full flex overflow-x-auto snap-x snap-mandatory scrollbar-none rounded-[20px] aspect-[16/10] bg-[#050814] border border-white/20 touch-pan-x"
+      >
+        {previews.map((preview, pIdx) => (
+          <div
+            key={pIdx}
+            className="w-full h-full shrink-0 snap-center overflow-hidden flex flex-col"
+            onClick={onOpen}
+          >
+            <ProjectArtwork
+              visual={preview}
+              large={pIdx === 0}
+              featured={isFlagship}
+              stackIndex={index}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Dots Indicator */}
+      {previews.length > 1 && (
+        <div className="flex items-center justify-center gap-1.5 py-1">
+          {previews.map((_, pIdx) => (
+            <button
+              key={pIdx}
+              type="button"
+              onClick={() => {
+                if (scrollRef.current) {
+                  scrollRef.current.scrollTo({
+                    left: pIdx * scrollRef.current.clientWidth,
+                    behavior: 'smooth',
+                  });
+                }
+              }}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                activeSlide === pIdx
+                  ? 'w-6 bg-gradient-to-r from-[#ff4fa3] to-[#ff9a3c]'
+                  : 'w-1.5 bg-white/25'
+              }`}
+              aria-label={`Go to slide ${pIdx + 1}`}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject }) => {
   const sectionRef = useRef<HTMLElement | null>(null);
   const headingRef = useRef<HTMLHeadingElement | null>(null);
   const cardRefs = useRef<(HTMLElement | null)[]>([]);
   const numRefs = useRef<(HTMLSpanElement | null)[]>([]);
+  const [canCardStack, setCanCardStack] = useState<boolean[]>([true, true, true]);
+
+  useEffect(() => {
+    const checkCardHeights = () => {
+      const isMobile = window.innerWidth < 1024;
+      if (!isMobile) {
+        setCanCardStack([true, true, true]);
+        return;
+      }
+
+      if (PROJECT_CARD_MODE === 'flow') {
+        setCanCardStack([false, false, false]);
+        return;
+      }
+      if (PROJECT_CARD_MODE === 'stack') {
+        setCanCardStack([true, true, true]);
+        return;
+      }
+
+      // 'auto' mode: only cards that fit (100svh - headerOffset - 32px) may stick
+      const vh = window.visualViewport?.height || window.innerHeight || 800;
+      const headerOffset = 64;
+      const maxAllowedHeight = vh - headerOffset - 32;
+
+      const fits = cardRefs.current.map((card) => {
+        if (!card) return true;
+        const h = card.offsetHeight || card.getBoundingClientRect().height;
+        return h <= maxAllowedHeight;
+      });
+
+      setCanCardStack(fits);
+    };
+
+    checkCardHeights();
+    window.addEventListener('resize', checkCardHeights);
+    window.addEventListener('orientationchange', checkCardHeights);
+    return () => {
+      window.removeEventListener('resize', checkCardHeights);
+      window.removeEventListener('orientationchange', checkCardHeights);
+    };
+  }, []);
 
   useEffect(() => {
     let ticking = false;
@@ -121,13 +243,15 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
         </div>
 
         {/* Video-Matched Sticky Stacking Project Cards (00:11 -> 00:12 -> 00:13 -> 00:14) */}
-        <div className="relative flex flex-col gap-10 lg:gap-16 pb-12 lg:pb-36">
+        <div className="relative flex flex-col gap-8 sm:gap-10 lg:gap-16 pb-12 lg:pb-36">
           {PORTFOLIO_DATA.projects.map((project: ProjectItem, index: number) => {
             const isEmpty = Boolean(project.isEmptyTemplate);
             const isFlagship = index === 0;
-            // 92px vertical step matches the card header height + top padding so each previous card's
-            // header strip ("01 GOKALIFREE", "02 PROJECT SLOT 02") stays 100% visible when stacked.
-            const stickyTopPx = 82 + index * 92;
+            const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 1024;
+            const isSticky = isDesktop || canCardStack[index];
+            const desktopStickyTop = 82 + index * 92;
+            const mobileStickyTop = 64 + 12 + index * 10;
+            const topValue = isDesktop ? desktopStickyTop : mobileStickyTop;
 
             return (
               <article
@@ -136,16 +260,18 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
                   cardRefs.current[index] = el;
                 }}
                 style={{
-                  top: `${stickyTopPx}px`,
+                  top: isSticky ? `${topValue}px` : undefined,
                   zIndex: 10 + index,
                 }}
-                className={`w-full lg:sticky rounded-[28px] sm:rounded-[34px] border bg-[#05070e] shadow-[0_-18px_48px_rgba(0,0,0,0.88)] transition-colors px-5 sm:px-8 lg:px-10 pt-4 sm:pt-5 pb-5 sm:pb-6 ${
+                className={`w-full ${
+                  isSticky ? 'sticky' : 'relative'
+                } rounded-[28px] sm:rounded-[34px] border bg-[#05070e] shadow-[0_-18px_48px_rgba(0,0,0,0.88)] transition-colors px-4 sm:px-8 lg:px-10 pt-4 sm:pt-5 pb-5 sm:pb-6 will-change-transform ${
                   isFlagship
                     ? 'border-white/45 hover:border-[#ff4fa3]/80'
                     : 'border-white/35 hover:border-white/65'
                 }`}
               >
-                {/* Compact Header Strip (stays completely visible in the 92px sticky stack) */}
+                {/* Compact Header Strip (stays completely visible in the sticky stack) */}
                 <div className="relative z-10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-6 lg:h-[68px] pb-3 sm:pb-4 border-b border-white/15">
                   <div className="flex items-center gap-4 sm:gap-6 min-w-0">
                     <span
@@ -162,8 +288,8 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
                     </span>
 
                     <div className="min-w-0">
-                      <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
-                        <h3 className="font-display uppercase tracking-tight text-white text-lg sm:text-2xl lg:text-[1.7rem] truncate">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                        <h3 className="font-display uppercase tracking-tight text-white text-base sm:text-2xl lg:text-[1.7rem] truncate">
                           {project.name}
                         </h3>
 
@@ -181,7 +307,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                     {!isEmpty && (
                       <MagneticButton
                         variant="outline"
@@ -205,16 +331,29 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
                   </div>
                 </div>
 
-                {/* Card Body: 3-Preview Bento Grid (1 Large Left + 2 Stacked Right, matching video 00:11-00:13) */}
+                {/* Mobile Preview Area: Compact 16:10 Horizontal Swipe Gallery with Dots */}
+                <div className="block lg:hidden mt-3 relative z-10">
+                  <MobileProjectGallery
+                    project={project}
+                    isFlagship={isFlagship}
+                    isEmpty={isEmpty}
+                    index={index}
+                    onOpen={() => {
+                      if (!isEmpty) onOpenProject(project.slug);
+                    }}
+                  />
+                </div>
+
+                {/* Desktop Preview Area: 3-Preview Bento Grid (1 Large Left + 2 Stacked Right) */}
                 <div
                   onClick={() => {
                     if (!isEmpty) onOpenProject(project.slug);
                   }}
-                  className={`relative z-10 mt-4 sm:mt-5 grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-5 items-stretch ${
+                  className={`hidden lg:grid relative z-10 mt-5 grid-cols-12 gap-5 items-stretch ${
                     isEmpty ? '' : 'cursor-pointer'
                   }`}
                 >
-                  <div className="lg:col-span-7 xl:col-span-8 flex">
+                  <div className="col-span-8 flex">
                     <ProjectArtwork
                       visual={project.previews[0]}
                       large
@@ -222,7 +361,7 @@ export const ProjectsSection: React.FC<ProjectsSectionProps> = ({ onOpenProject 
                       stackIndex={index}
                     />
                   </div>
-                  <div className="lg:col-span-5 xl:col-span-4 flex flex-col justify-between gap-4 sm:gap-5">
+                  <div className="col-span-4 flex flex-col justify-between gap-5">
                     <ProjectArtwork
                       visual={project.previews[1]}
                       featured={isFlagship}

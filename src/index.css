@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "./styles/mobileStorytelling.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
@@ -57,7 +58,8 @@ textarea,
 
 /* Video-matched hero metallic silver-white gradient text */
 .hero-title-gradient,
-.hero-title-gradient .agent-word {
+.hero-title-gradient .agent-word,
+.hero-title-gradient .hero-word-inner {
   background: linear-gradient(180deg, #ffffff 0%, #f1f3f9 42%, #6e7382 100%);
   -webkit-background-clip: text;
   background-clip: text;

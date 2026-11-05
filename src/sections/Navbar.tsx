@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { Menu, X } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
-import { cancelAgentSwarm } from '../components/AgentSwarm';
+import { cancelAgentSwarm } from '../lib/swarmEvents';
 
 interface NavbarProps {
   onNavigateHome?: () => void;

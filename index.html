@@ -15,9 +15,14 @@
         window.scrollTo(0, 0);
       } catch (e) {}
 
-      // 2. Immediate reduced-motion & JS safety check before first paint
+      // 2. Immediate device & reduced-motion check before first paint:
+      // Mobile (phones, tablets, touch) gets NO swarm and NO pre-paint hiding, so content is visible in first paint.
       try {
-        if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        var params = new URLSearchParams(window.location.search);
+        var urlMode = params.get('mode');
+        var isDesktop = urlMode === 'desktop' || (urlMode !== 'mobile' && window.matchMedia && window.matchMedia('(min-width: 1024px) and (hover: hover) and (pointer: fine)').matches);
+        var isReducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!isDesktop || isReducedMotion) {
           document.documentElement.classList.remove('agent-swarm-active');
         }
       } catch (e) {}

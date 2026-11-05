@@ -239,8 +239,8 @@ export const EducationSkillsSection: React.FC = () => {
         ))}
       </div>
 
-      {/* 2x3 Rounded Outlined Card Grid */}
-      <div className="relative z-20 mt-12 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
+      {/* 2x3 Rounded Outlined Card Grid (with horizontal scroll-snap momentum on mobile) */}
+      <div className="relative z-20 mt-12 flex overflow-x-auto pb-4 -mx-4 px-4 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7 mobile-snap-container">
         {filteredCategories.map((group, idx) => {
           const isEducation = group.id.startsWith('education-');
           const numberLabel = String(idx + 1).padStart(2, '0');
@@ -251,7 +251,7 @@ export const EducationSkillsSection: React.FC = () => {
               ref={(el) => {
                 cardRefs.current[idx] = el;
               }}
-              className="group relative rounded-[28px] border border-white/30 hover:border-[#ff4fa3]/75 active:border-[#ff4fa3] bg-[#070910]/95 p-7 sm:p-8 flex flex-col justify-between gap-6 will-change-transform transition-colors overflow-hidden touch-manipulation"
+              className="group relative rounded-[28px] border border-white/30 hover:border-[#ff4fa3]/75 active:border-[#ff4fa3] bg-[#070910]/95 p-7 sm:p-8 flex flex-col justify-between gap-6 will-change-transform transition-colors overflow-hidden touch-manipulation mobile-snap-card w-[84vw] max-w-[340px] sm:w-auto sm:max-w-none shrink-0 sm:shrink"
             >
               {/* Subtle Top-Right Outlined Index Number */}
               <span

@@ -20,6 +20,7 @@ export const ContactSection: React.FC = () => {
   const [submitting, setSubmitting] = useState(false);
   const [submissions, setSubmissions] = useState<SubmittedInquiry[]>([]);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
+  const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
   const sectionRef = useRef<HTMLElement | null>(null);
   const boltRef = useRef<HTMLDivElement | null>(null);
@@ -123,6 +124,13 @@ export const ContactSection: React.FC = () => {
       setStatusMessage(
         `Thanks ${form.name.trim()}! Your message has been sent to Nilesh (${PORTFOLIO_DATA.profile.email}).`
       );
+      setSubmittedSuccess(true);
+      setTimeout(() => setSubmittedSuccess(false), 4000);
+      if ('vibrate' in navigator) {
+        try {
+          navigator.vibrate([20, 40, 20]);
+        } catch (e) {}
+      }
       setForm({ name: '', email: '', phone: '', message: '' });
     } catch {
       const fallbackEntry: SubmittedInquiry = {
@@ -283,7 +291,7 @@ export const ContactSection: React.FC = () => {
         {/* Right Column: Minimalist Underline Contact Form (Video 00:17-00:18) */}
         <div ref={formWrapRef} className="lg:col-span-7 will-change-transform">
           <form onSubmit={handleSubmit} noValidate className="space-y-6">
-            <div data-swarm-target="contact-field">
+            <div data-swarm-target="contact-field" className="relative">
               <label
                 htmlFor="contact-name"
                 className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -301,6 +309,7 @@ export const ContactSection: React.FC = () => {
                 aria-describedby={errors.name ? 'error-name' : undefined}
                 className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
               />
+              <span className="mobile-form-line" aria-hidden="true" />
               {errors.name && (
                 <p id="error-name" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
                   {errors.name}
@@ -309,7 +318,7 @@ export const ContactSection: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              <div data-swarm-target="contact-field">
+              <div data-swarm-target="contact-field" className="relative">
                 <label
                   htmlFor="contact-email"
                   className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -327,6 +336,7 @@ export const ContactSection: React.FC = () => {
                   aria-describedby={errors.email ? 'error-email' : undefined}
                   className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
                 />
+                <span className="mobile-form-line" aria-hidden="true" />
                 {errors.email && (
                   <p id="error-email" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
                     {errors.email}
@@ -334,7 +344,7 @@ export const ContactSection: React.FC = () => {
                 )}
               </div>
 
-              <div data-swarm-target="contact-field">
+              <div data-swarm-target="contact-field" className="relative">
                 <label
                   htmlFor="contact-phone"
                   className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -350,10 +360,11 @@ export const ContactSection: React.FC = () => {
                   placeholder=""
                   className="mt-1 w-full min-h-[48px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors touch-manipulation"
                 />
+                <span className="mobile-form-line" aria-hidden="true" />
               </div>
             </div>
 
-            <div data-swarm-target="contact-field">
+            <div data-swarm-target="contact-field" className="relative">
               <label
                 htmlFor="contact-message"
                 className="block text-xs font-bold uppercase tracking-wider text-[#05060a]/70"
@@ -371,6 +382,7 @@ export const ContactSection: React.FC = () => {
                 aria-describedby={errors.message ? 'error-message' : undefined}
                 className="mt-1 w-full min-h-[96px] bg-transparent border-b border-[#05060a]/35 py-3 text-base font-medium text-[#05060a] focus:border-[#7b5cff] focus:outline-none transition-colors resize-none touch-manipulation"
               />
+              <span className="mobile-form-line" aria-hidden="true" />
               {errors.message && (
                 <p id="error-message" role="alert" className="mt-1.5 text-xs font-semibold text-red-600">
                   {errors.message}
@@ -383,10 +395,14 @@ export const ContactSection: React.FC = () => {
                 type="submit"
                 disabled={submitting}
                 data-swarm-target="contact-send-btn"
-                className="w-full min-h-[52px] py-4 px-8 rounded-full border border-[#05060a] text-[#05060a] font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-[#05060a] hover:text-[#eef0f5] active:bg-[#05060a] active:text-[#eef0f5] active:scale-[0.97] transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation select-none"
+                className="w-full min-h-[52px] py-4 px-8 rounded-full border border-[#05060a] text-[#05060a] font-bold uppercase tracking-widest text-xs sm:text-sm hover:bg-[#05060a] hover:text-[#eef0f5] active:bg-[#05060a] active:text-[#eef0f5] active:scale-[0.97] transition-all flex items-center justify-center gap-2 cursor-pointer touch-manipulation select-none relative overflow-visible"
               >
-                <Send className="w-4 h-4" />
-                <span>{submitting ? 'SENDING...' : 'SEND'}</span>
+                {submittedSuccess ? (
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600 animate-bounce" />
+                ) : (
+                  <Send className="w-4 h-4" />
+                )}
+                <span>{submitting ? 'SENDING...' : submittedSuccess ? 'SENT!' : 'SEND'}</span>
               </button>
             </div>
 

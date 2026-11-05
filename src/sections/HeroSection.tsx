@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ArrowDown } from 'lucide-react';
 import { PORTFOLIO_DATA } from '../data/portfolio';
 import { MagneticButton } from '../components/MagneticButton';
+import { GlossyShape3D } from '../components/GlossyShape3D';
 
 const renderCharSpans = (text: string) => {
   return text.split('').map((char, index) => (
@@ -76,33 +77,54 @@ export const HeroSection: React.FC = () => {
         aria-hidden="true"
       />
 
-      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" (Built LAST by 3 agents in parallel) */}
+      {/* Giant Full-Width Uppercase Hero Heading: "HI, I'M NILESH" */}
       <div ref={titleWrapRef} className="w-full overflow-hidden text-center pt-2 sm:pt-6 will-change-transform">
         <h1
           id="hero-heading"
-          className="w-full font-display uppercase hero-title-gradient text-[clamp(2.4rem,9.1vw,8.8rem)] tracking-tight leading-[0.94] sm:whitespace-nowrap select-none"
+          aria-label="HI, I'M NILESH"
+          className="w-full font-display uppercase text-[clamp(2.4rem,9.2vw,8.8rem)] tracking-tight leading-[0.96] select-none"
         >
-          <span className="agent-word" data-word-idx="0">
-            <span className="agent-char">H</span>
-            <span className="agent-char">I</span>
-            <span className="agent-char">,</span>
+          <span className="hero-word-mask" aria-hidden="true">
+            <span className="hero-word-inner hero-title-gradient agent-word" data-word-idx="0">
+              <span className="agent-char">H</span>
+              <span className="agent-char">I</span>
+              <span className="agent-char">,</span>
+            </span>
+          </span>{' '}
+          <span className="hero-word-mask" aria-hidden="true">
+            <span className="hero-word-inner hero-title-gradient agent-word" data-word-idx="1">
+              <span className="agent-char">I</span>
+              <span className="agent-char">&apos;</span>
+              <span className="agent-char">M</span>
+            </span>
           </span>
-          <span className="agent-char agent-space"> </span>
-          <span className="agent-word" data-word-idx="1">
-            <span className="agent-char">I</span>
-            <span className="agent-char">&apos;</span>
-            <span className="agent-char">M</span>
-          </span>
-          <span className="agent-char agent-space"> </span>
-          <span className="agent-word" data-word-idx="2">
-            <span className="agent-char">N</span>
-            <span className="agent-char">I</span>
-            <span className="agent-char">L</span>
-            <span className="agent-char">E</span>
-            <span className="agent-char">S</span>
-            <span className="agent-char">H</span>
+          <br className="block sm:hidden" />{' '}
+          <span className="hero-word-mask" aria-hidden="true">
+            <span className="hero-word-inner hero-title-gradient agent-word" data-word-idx="2">
+              <span className="agent-char">N</span>
+              <span className="agent-char">I</span>
+              <span className="agent-char">L</span>
+              <span className="agent-char">E</span>
+              <span className="agent-char">S</span>
+              <span className="agent-char">H</span>
+            </span>
           </span>
         </h1>
+      </div>
+
+      {/* Mobile-Only Reactive 3D Glossy Blob */}
+      <div id="mobile-hero-blob-wrap" className="block lg:hidden my-4 sm:my-6 flex justify-center">
+        <div
+          id="mobile-hero-blob"
+          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-full cursor-grab active:cursor-grabbing select-none touch-none will-change-transform"
+        >
+          <div className="w-full h-full rounded-full bg-gradient-to-tr from-[#7b5cff] via-[#ff4fa3] to-[#ff9a3c] p-[2px] shadow-[0_0_36px_rgba(255,79,163,0.35)]">
+            <div className="w-full h-full rounded-full bg-gradient-to-br from-[#120a26] via-[#24082e] to-[#0a0714] relative overflow-hidden flex items-center justify-center">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.35),transparent_60%)]" />
+              <GlossyShape3D variant="silver-splash" className="w-16 h-16 sm:w-20 sm:h-20 opacity-90 pointer-events-none" />
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Center / Lower Full-Screen Row: Left Uppercase Subtitle | Right Glowing Gradient "CONTACT ME" Pill */}
