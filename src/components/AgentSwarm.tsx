@@ -6,6 +6,9 @@ import React, { useEffect, useRef } from 'react';
 export const AGENT_SWARM_CONFIG = {
   k: 1.8,
 
+  // Flag: absolutely no idle wandering or random hovering
+  IDLE_WANDER: false,
+
   // Config switch: toggle 'hero' or 'contact'. If 'contact' is removed, effect runs only on hero
   runs: ['hero', 'contact'] as Array<'hero' | 'contact'>,
 
@@ -27,15 +30,16 @@ export const AGENT_SWARM_CONFIG = {
   totalAgentsDesktop: 18,
   totalAgentsMobile: 10,
 
-  maxNavWorkersDesktop: 2,
-  maxNavWorkersMobile: 1,
-  maxHeroWorkersDesktop: 4,
-  maxHeroWorkersMobile: 2,
+  // Concurrency slots per lane (on-demand creation up to limits)
+  maxNavWorkersDesktop: 4,
+  maxNavWorkersMobile: 2,
+  maxHeroWorkersDesktop: 14,
+  maxHeroWorkersMobile: 8,
 
-  maxContactWorkersDesktop: 3,
-  maxContactWorkersMobile: 1,
-  maxFooterWorkersDesktop: 3,
-  maxFooterWorkersMobile: 1,
+  maxContactWorkersDesktop: 9,
+  maxContactWorkersMobile: 5,
+  maxFooterWorkersDesktop: 9,
+  maxFooterWorkersMobile: 5,
 
   paletteColors: [
     '#2f6bff', // blue
@@ -60,9 +64,13 @@ export const AGENT_SWARM_CONFIG = {
 
   durations: {
     pointerWaitMax: 400,
-    spawnInterval: 70, // 60-80ms apart
-    mergeInterval: 45, // Staggered death into cursor (total ~600-800ms)
-    flyToElement: 500,
+    spawnIntervalMin: 60, // Spawn no faster than 60-80ms apart
+    spawnIntervalTarget: 70,
+    travelSpeedPxPerSec: 720, // Fixed velocity so closer tasks are faster
+    travelMinDuration: 500,
+    travelMaxDuration: 900,
+    returnMinDuration: 400,
+    returnMaxDuration: 800,
     dragBox: 450,
     typingPerChar: 45,
     typingPerCharHeroName: 90, // 90ms * K per letter for hero name
@@ -70,12 +78,11 @@ export const AGENT_SWARM_CONFIG = {
     blockWireframe: 650,
     buttonRipple: 320,
     shapePlacement: 400,
-    boxFadeOut: 350,
+    boxFadeOut: 240,
   },
 
   lerp: {
     working: 0.18,
-    helper: 0.035,
     merge: 0.18,
   },
 
@@ -113,26 +120,27 @@ interface SwarmTarget {
   customData?: any;
 }
 
+type AgentStateMode = 'traveling' | 'working' | 'returning';
+
 interface AgentState {
   id: string;
   name: string;
   color: string;
   assignedLane: WorkLane;
-  role: 'worker' | 'ambient';
   x: number;
   y: number;
+  startX: number;
+  startY: number;
   targetX: number;
   targetY: number;
   scale: number;
-  spawnTime: number;
-  mergeDepartureTime?: number;
-  mode: 'unspawned' | 'spawning' | 'idle' | 'flying' | 'dragging' | 'acting' | 'finishing' | 'merging' | 'hidden';
-  cursorType: 'arrow' | 'ibeam' | 'crosshair';
-  activeTargetId?: string;
+  mode: AgentStateMode;
+  workPhase?: 'dragging' | 'acting' | 'finishing';
+  cursorType: 'arrow' | 'ibeam';
+  activeTargetId: string;
   actionStart: number;
   actionDuration: number;
-  lastWanderPick: number;
-  wanderInterval: number;
+  departureTime?: number;
   boxRect?: { x: number; y: number; w: number; h: number; fullW: number; fullH: number };
   tagLabel?: string;
   trail: Array<{ x: number; y: number; alpha: number }>;
@@ -403,19 +411,19 @@ function scanRun2Targets(): SwarmTarget[] {
   if (contact) {
     registerTarget(contact.querySelector('[data-swarm-target="contact-heading"]'), 'contact-heading', 'text', 'contact', 0, { x: 8, y: 4 });
     registerTarget(contact.querySelector('[data-swarm-target="contact-link-email"]'), 'contact-email', 'text', 'contact', 1, { x: 6, y: 3 });
-    registerTarget(contact.querySelector('[data-swarm-target="contact-link-phone"]'), 'contact-phone', 'text', 'contact', 2, { x: 6, y: 3 });
-    registerTarget(contact.querySelector('[data-swarm-target="contact-intro"]'), 'contact-intro', 'text', 'contact', 3, { x: 6, y: 4 });
+    registerTarget(contact.querySelector('[data-swarm-target="contact-link-phone"]'), 'contact-phone', 'text', 'contact', 1, { x: 6, y: 3 });
+    registerTarget(contact.querySelector('[data-swarm-target="contact-intro"]'), 'contact-intro', 'text', 'contact', 2, { x: 6, y: 4 });
 
     const chips = Array.from(contact.querySelectorAll('[data-swarm-target="contact-chip"]')) as HTMLElement[];
-    chips.forEach((ch, idx) => registerTarget(ch, `contact-chip-${idx}`, 'chip', 'contact', 4 + idx, { x: 4, y: 3 }));
+    chips.forEach((ch, idx) => registerTarget(ch, `contact-chip-${idx}`, 'chip', 'contact', 3, { x: 4, y: 3 }));
 
-    registerTarget(contact.querySelector('[data-swarm-target="contact-figure-bolt"]'), 'figure-bolt', 'figure', 'contact', 8, { x: 8, y: 8 });
-    registerTarget(contact.querySelector('[data-swarm-target="contact-figure-hand"]'), 'figure-hand', 'figure', 'contact', 9, { x: 8, y: 8 });
+    registerTarget(contact.querySelector('[data-swarm-target="contact-figure-bolt"]'), 'figure-bolt', 'figure', 'contact', 4, { x: 8, y: 8 });
+    registerTarget(contact.querySelector('[data-swarm-target="contact-figure-hand"]'), 'figure-hand', 'figure', 'contact', 4, { x: 8, y: 8 });
 
     const fields = Array.from(contact.querySelectorAll('[data-swarm-target="contact-field"]')) as HTMLElement[];
-    fields.forEach((f, idx) => registerTarget(f, `contact-field-${idx}`, 'form-field', 'contact', 10 + idx, { x: 6, y: 4 }));
+    fields.forEach((f, idx) => registerTarget(f, `contact-field-${idx}`, 'form-field', 'contact', 5, { x: 6, y: 4 }));
 
-    registerTarget(contact.querySelector('[data-swarm-target="contact-send-btn"]'), 'contact-send', 'button', 'contact', 14, { x: 8, y: 6 });
+    registerTarget(contact.querySelector('[data-swarm-target="contact-send-btn"]'), 'contact-send', 'button', 'contact', 6, { x: 8, y: 6 });
   }
 
   // FOOTER lane targets (parallel lane)
@@ -452,7 +460,7 @@ function scanRun2Targets(): SwarmTarget[] {
         (shapeEl as HTMLElement).style.transform = 'scale(0.4)';
         (shapeEl as HTMLElement).style.transformOrigin = 'center';
 
-        registerTarget(shapeEl, `footer-shape-${idx}`, 'svg-shape', 'footer', 4 + idx, { x: 4, y: 4 }, { shapeIndex: idx });
+        registerTarget(shapeEl, `footer-shape-${idx}`, 'svg-shape', 'footer', 4, { x: 4, y: 4 }, { shapeIndex: idx });
       });
     }
   }
@@ -461,7 +469,7 @@ function scanRun2Targets(): SwarmTarget[] {
 }
 
 // ----------------------------------------------------------------------------
-// SWARM RUN INSTANCE FACTORY (Independent Runs Architecture)
+// SWARM RUN INSTANCE FACTORY (On-Demand Agent Architecture)
 // ----------------------------------------------------------------------------
 
 interface SwarmRunConfig {
@@ -484,12 +492,14 @@ export interface SwarmRunInstance {
 }
 
 export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
-  let status: 'unstarted' | 'active' | 'merging' | 'done' = 'unstarted';
+  let status: 'unstarted' | 'active' | 'cancelling' | 'done' = 'unstarted';
   let canvas: HTMLCanvasElement | null = null;
   let ctx: CanvasRenderingContext2D | null = null;
   let animFrameId = 0;
   let startTime = 0;
-  let mergeTriggerTime = 0;
+  let lastSpawnTime = 0;
+  let agentCounter = 0;
+  let debugTimer: any = null;
 
   let agents: AgentState[] = [];
   let targetsQueue: SwarmTarget[] = [];
@@ -501,7 +511,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
   const lerpCfg = AGENT_SWARM_CONFIG.lerp;
 
   const isMob = typeof window !== 'undefined' ? window.innerWidth < 768 : false;
-  const totalAgents = isMob ? AGENT_SWARM_CONFIG.totalAgentsMobile : AGENT_SWARM_CONFIG.totalAgentsDesktop;
+  const maxTotalAgents = isMob ? AGENT_SWARM_CONFIG.totalAgentsMobile : AGENT_SWARM_CONFIG.totalAgentsDesktop;
 
   const handleResize = () => {
     if (!canvas) return;
@@ -513,6 +523,10 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
     if (animFrameId) {
       cancelAnimationFrame(animFrameId);
       animFrameId = 0;
+    }
+    if (debugTimer) {
+      clearInterval(debugTimer);
+      debugTimer = null;
     }
     if (typeof window !== 'undefined') {
       window.removeEventListener('resize', handleResize);
@@ -529,10 +543,6 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
 
     if (target.lane === 'nav') {
       if (target.order === 0) return true;
-      if (target.order === 1) {
-        const h = activeTargets.find((t) => t.lane === 'nav' && t.order === 0);
-        return !h || h.status === 'completed' || h.status === 'in-progress';
-      }
       const prev = activeTargets.find((t) => t.lane === 'nav' && t.order === target.order - 1);
       return !prev || prev.status === 'completed' || prev.status === 'in-progress';
     }
@@ -540,6 +550,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
     if (target.lane === 'hero') {
       if (target.order < 5) return true;
       if (target.order === 5) {
+        // Name words: only when pre-name hero items 0-4 are completely finished
         const heroPreName = activeTargets.filter((t) => t.lane === 'hero' && t.order < 5 && t.status !== 'completed');
         return heroPreName.length === 0;
       }
@@ -551,13 +562,31 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
     }
 
     if (target.lane === 'footer') {
-      if (target.order === 0) return true; // Both word 0 and word 1 can be typed in parallel
       const prev = activeTargets.filter((t) => t.lane === 'footer' && t.order < target.order && t.status === 'pending');
       return prev.length === 0;
     }
 
     return true;
   };
+
+  // DEVELOPER SELF-CHECK (?swarmdebug=1)
+  if (typeof window !== 'undefined' && window.location.search.includes('swarmdebug=1')) {
+    debugTimer = setInterval(() => {
+      if (status !== 'active' && status !== 'cancelling') return;
+      const travel = agents.filter((a) => a.mode === 'traveling').length;
+      const work = agents.filter((a) => a.mode === 'working').length;
+      const ret = agents.filter((a) => a.mode === 'returning').length;
+      console.log(`[SwarmDebug:${config.name}] Agents: travel=${travel}, work=${work}, return=${ret}, total=${agents.length}`);
+
+      agents.forEach((a) => {
+        const isIllegal = a.mode !== 'traveling' && a.mode !== 'working' && a.mode !== 'returning';
+        const isWorkingWithoutTask = a.mode === 'working' && !a.activeTargetId;
+        if (isIllegal || isWorkingWithoutTask) {
+          console.warn(`IDLE AGENT FOUND: ${a.id} in illegal state mode=${(a as any).mode}, target=${a.activeTargetId}`);
+        }
+      });
+    }, 1000);
+  }
 
   const render = (now: number) => {
     if (status === 'done' || !canvas || !ctx) return;
@@ -578,39 +607,15 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
     ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
-    // Spawn agents progressively from live cursor
-    agents.forEach((ag) => {
-      if (ag.mode === 'unspawned' && now >= ag.spawnTime) {
-        ag.mode = 'spawning';
-        ag.actionStart = now;
-        ag.actionDuration = 200;
-
-        const ptr = config.getUserPointer();
-        const spawnX = ptr.active ? ptr.x : window.innerWidth / 2;
-        const spawnY = ptr.active ? ptr.y : config.name === 'hero' ? 220 : 180;
-        ag.x = spawnX;
-        ag.y = spawnY;
-
-        pulseRings.push({
-          x: spawnX,
-          y: spawnY,
-          radius: 0,
-          maxRadius: 36,
-          alpha: 1,
-          color: ag.color,
-        });
-      }
-    });
-
-    // Render pulse rings
+    // Pulse rings (spawn pops & death pops at pointer)
     pulseRings.forEach((r, idx) => {
-      r.radius += 2.5;
+      r.radius += 2.2;
       r.alpha = Math.max(0, 1 - r.radius / r.maxRadius);
       if (r.alpha > 0.01) {
         ctx!.save();
         ctx!.globalAlpha = r.alpha;
         ctx!.strokeStyle = r.color;
-        ctx!.lineWidth = 2.5;
+        ctx!.lineWidth = 2.2;
         ctx!.beginPath();
         ctx!.arc(r.x, r.y, r.radius, 0, Math.PI * 2);
         ctx!.stroke();
@@ -620,7 +625,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       }
     });
 
-    // Top Ruler & Red Guide Line
+    // Top Ruler & Red Guide Line during active building
     if (status === 'active') {
       const rulerH = 22;
       ctx.fillStyle = 'rgba(6, 12, 28, 0.92)';
@@ -667,11 +672,12 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       ctx.textAlign = 'left';
     }
 
-    // Queue status checks
+    // Target queues
     const activeTargets = targetsQueue.filter((t) => config.lanes.includes(t.lane));
     const pendingTargets = activeTargets.filter((t) => t.status === 'pending');
+    const inProgressTargets = activeTargets.filter((t) => t.status === 'in-progress');
 
-    // Reveal targets scrolled far past
+    // Targets scrolled far past are revealed instantly
     pendingTargets.forEach((t) => {
       if (isTargetScrolledPast(t.element)) {
         revealTarget(t);
@@ -699,96 +705,103 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       }
     });
 
-    // Check completion
-    const remainingPending = activeTargets.filter((t) => t.status === 'pending');
-    if (activeTargets.length > 0 && remainingPending.length === 0) {
-      const inProgressCount = activeTargets.filter((t) => t.status === 'in-progress').length;
-      if (inProgressCount === 0 && status === 'active') {
-        // All targets completed naturally!
-        status = 'merging';
-        mergeTriggerTime = now;
-        agents.forEach((ag, idx) => {
-          ag.activeTargetId = undefined;
-          ag.boxRect = undefined;
-          ag.mergeDepartureTime = now + idx * d.mergeInterval;
-        });
-      }
-    }
-
-    // Worker Job Assignment per Lane
+    // ------------------------------------------------------------------------
+    // ON-DEMAND AGENT CREATION (One Task per Agent)
+    // ------------------------------------------------------------------------
     if (status === 'active') {
+      const remainingPending = activeTargets.filter((t) => t.status === 'pending');
+
       config.lanes.forEach((lane) => {
         const laneTargets = remainingPending.filter((t) => t.lane === lane && isLaneTargetReady(t, activeTargets));
         if (laneTargets.length === 0) return;
 
-        const idleWorkers = agents.filter(
-          (a) => a.role === 'worker' && a.assignedLane === lane && a.mode === 'idle'
-        );
-        if (idleWorkers.length === 0) return;
-
-        const activeWorkersCount = agents.filter(
-          (a) => a.role === 'worker' && a.assignedLane === lane && (a.mode === 'flying' || a.mode === 'dragging' || a.mode === 'acting')
+        // Current agents working or heading to this lane
+        const laneAgentsCount = agents.filter(
+          (a) => a.assignedLane === lane && (a.mode === 'traveling' || a.mode === 'working')
         ).length;
 
-        let maxAllowed = 2;
-        if (lane === 'nav') maxAllowed = isMob ? AGENT_SWARM_CONFIG.maxNavWorkersMobile : AGENT_SWARM_CONFIG.maxNavWorkersDesktop;
-        else if (lane === 'hero') maxAllowed = laneTargets[0]?.type === 'hero-name-word' ? 3 : (isMob ? AGENT_SWARM_CONFIG.maxHeroWorkersMobile : AGENT_SWARM_CONFIG.maxHeroWorkersDesktop);
-        else if (lane === 'contact') maxAllowed = isMob ? AGENT_SWARM_CONFIG.maxContactWorkersMobile : AGENT_SWARM_CONFIG.maxContactWorkersDesktop;
-        else if (lane === 'footer') maxAllowed = isMob ? AGENT_SWARM_CONFIG.maxFooterWorkersMobile : AGENT_SWARM_CONFIG.maxFooterWorkersDesktop;
+        let maxLaneAllowed = 4;
+        if (lane === 'nav') maxLaneAllowed = isMob ? AGENT_SWARM_CONFIG.maxNavWorkersMobile : AGENT_SWARM_CONFIG.maxNavWorkersDesktop;
+        else if (lane === 'hero') maxLaneAllowed = laneTargets[0]?.type === 'hero-name-word' ? 3 : (isMob ? AGENT_SWARM_CONFIG.maxHeroWorkersMobile : AGENT_SWARM_CONFIG.maxHeroWorkersDesktop);
+        else if (lane === 'contact') maxLaneAllowed = isMob ? AGENT_SWARM_CONFIG.maxContactWorkersMobile : AGENT_SWARM_CONFIG.maxContactWorkersDesktop;
+        else if (lane === 'footer') maxLaneAllowed = isMob ? AGENT_SWARM_CONFIG.maxFooterWorkersMobile : AGENT_SWARM_CONFIG.maxFooterWorkersDesktop;
 
-        if (activeWorkersCount < maxAllowed) {
-          const candidate = laneTargets[0];
+        // Total active slots check
+        const totalAlive = agents.length;
+        if (totalAlive < maxTotalAgents && laneAgentsCount < maxLaneAllowed) {
+          if (now - lastSpawnTime >= d.spawnIntervalMin) {
+            const candidate = laneTargets[0];
 
-          // A worker only takes jobs whose target is >= 50% inside viewport. If not visible yet, wait!
-          if (!isTargetInView(candidate.element, AGENT_SWARM_CONFIG.thresholds.targetInView)) {
-            return;
-          }
+            // Target must be >= 50% in view. If not on screen yet, wait in queue!
+            if (isTargetInView(candidate.element, AGENT_SWARM_CONFIG.thresholds.targetInView)) {
+              candidate.status = 'in-progress';
+              lastSpawnTime = now;
 
-          const targetRect = candidate.element.getBoundingClientRect();
-          const padX = candidate.padding?.x || 0;
-          const padY = candidate.padding?.y || 0;
+              const ptr = config.getUserPointer();
+              const spawnX = ptr.active ? ptr.x : window.innerWidth / 2;
+              const spawnY = ptr.active ? ptr.y : config.name === 'hero' ? 220 : 180;
 
-          const localX = targetRect.left - padX;
-          const localY = targetRect.top - padY;
-          const width = targetRect.width + padX * 2;
-          const height = targetRect.height + padY * 2;
+              const padX = candidate.padding?.x || 0;
+              const padY = candidate.padding?.y || 0;
+              const rect = candidate.element.getBoundingClientRect();
+              const targetX = rect.left - padX;
+              const targetY = rect.top - padY;
+              const width = Math.max(24, rect.width + padX * 2);
+              const height = Math.max(18, rect.height + padY * 2);
 
-          let bestAgent = idleWorkers[0];
-          let minDist = Infinity;
-          idleWorkers.forEach((ag) => {
-            const dist = Math.hypot(ag.x - localX, ag.y - localY);
-            if (dist < minDist) {
-              minDist = dist;
-              bestAgent = ag;
+              const dist = Math.hypot(targetX - spawnX, targetY - spawnY);
+              const rawDuration = Math.max(d.travelMinDuration, Math.min(d.travelMaxDuration, (dist / d.travelSpeedPxPerSec) * 1000));
+              const travelDuration = rawDuration * K;
+
+              agentCounter++;
+              const agentId = `agent-${agentCounter}`;
+              const color = AGENT_SWARM_CONFIG.paletteColors[(agentCounter - 1) % AGENT_SWARM_CONFIG.paletteColors.length];
+
+              candidate.assignedAgentId = agentId;
+
+              // Emit birth pop pulse ring at pointer
+              pulseRings.push({
+                x: spawnX,
+                y: spawnY,
+                radius: 0,
+                maxRadius: 28,
+                alpha: 1,
+                color,
+              });
+
+              agents.push({
+                id: agentId,
+                name: agentId,
+                color,
+                assignedLane: lane,
+                x: spawnX,
+                y: spawnY,
+                startX: spawnX,
+                startY: spawnY,
+                targetX,
+                targetY,
+                scale: 0,
+                mode: 'traveling',
+                cursorType: 'arrow',
+                activeTargetId: candidate.id,
+                actionStart: now,
+                actionDuration: travelDuration,
+                boxRect: {
+                  x: targetX,
+                  y: targetY,
+                  w: 0,
+                  h: 0,
+                  fullW: width,
+                  fullH: height,
+                },
+                tagLabel: `${candidate.element.tagName.toLowerCase()} · ${Math.round(width)}×${Math.round(height)}`,
+                trail: [],
+              });
             }
-          });
-
-          candidate.status = 'in-progress';
-          candidate.assignedAgentId = bestAgent.id;
-
-          bestAgent.activeTargetId = candidate.id;
-          bestAgent.mode = 'flying';
-          bestAgent.targetX = localX;
-          bestAgent.targetY = localY;
-          bestAgent.actionStart = now;
-          bestAgent.actionDuration = d.flyToElement * K;
-          bestAgent.boxRect = {
-            x: localX,
-            y: localY,
-            w: 0,
-            h: 0,
-            fullW: Math.max(24, width),
-            fullH: Math.max(18, height),
-          };
-          bestAgent.tagLabel = `${candidate.element.tagName.toLowerCase()} · ${Math.round(width)}×${Math.round(height)}`;
+          }
         }
       });
     }
-
-    const inViewTargets = activeTargets.filter((t) => {
-      const r = t.element.getBoundingClientRect();
-      return r.bottom > 0 && r.top < window.innerHeight;
-    });
 
     const activeGuides: Array<{
       x: number;
@@ -800,378 +813,351 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       opacity: number;
     }> = [];
 
-    // UPDATE AGENTS
-    agents.forEach((agent, agentIdx) => {
-      if (agent.mode === 'unspawned') return;
+    // ------------------------------------------------------------------------
+    // UPDATE AGENTS: Exactly Traveling -> Working -> Returning -> Die
+    // ------------------------------------------------------------------------
+    const deadAgentIds: string[] = [];
 
-      // Merging: Fly directly into visitor's live cursor and vanish
-      if (status === 'merging') {
-        if (agent.mode !== 'hidden') {
-          if (!agent.mergeDepartureTime) {
-            agent.mergeDepartureTime = mergeTriggerTime + agentIdx * d.mergeInterval;
-          }
-
-          if (now >= agent.mergeDepartureTime) {
-            agent.mode = 'merging';
-
-            const ptr = config.getUserPointer();
-            const destX = ptr.active ? ptr.x : window.innerWidth / 2;
-            const destY = ptr.active ? ptr.y : window.innerHeight / 2;
-
-            agent.x += (destX - agent.x) * lerpCfg.merge;
-            agent.y += (destY - agent.y) * lerpCfg.merge;
-
-            const dist = Math.hypot(destX - agent.x, destY - agent.y);
-            if (dist < 40) {
-              agent.scale = Math.max(0, agent.scale - 0.16);
-            }
-
-            if (dist < 10 || agent.scale <= 0.05) {
-              agent.mode = 'hidden';
-              pulseRings.push({
-                x: destX,
-                y: destY,
-                radius: 0,
-                maxRadius: 22,
-                alpha: 0.8,
-                color: agent.color,
-              });
-            }
-          } else {
-            agent.x += (agent.targetX - agent.x) * 0.04;
-            agent.y += (agent.targetY - agent.y) * 0.04;
-          }
-        }
-
-        agent.x = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerWidth - AGENT_SWARM_CONFIG.viewportMargin, agent.x));
-        agent.y = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerHeight - AGENT_SWARM_CONFIG.viewportMargin, agent.y));
-        return;
-      }
-
-      // Spawning
-      if (agent.mode === 'spawning') {
-        const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
-        agent.scale = Math.min(1, progress * 1.15);
-        agent.x += (agent.targetX - agent.x) * 0.08;
-        agent.y += (agent.targetY - agent.y) * 0.08;
-
-        if (progress >= 1) {
-          agent.scale = 1;
-          agent.mode = 'idle';
-        }
-
-        agent.x = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerWidth - AGENT_SWARM_CONFIG.viewportMargin, agent.x));
-        agent.y = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerHeight - AGENT_SWARM_CONFIG.viewportMargin, agent.y));
-        return;
-      }
-
-      // Idle: Ambient wandering near in-view elements
-      if (agent.mode === 'idle') {
-        if (now > agent.lastWanderPick + agent.wanderInterval) {
-          agent.lastWanderPick = now;
-          agent.wanderInterval = 2200 + Math.random() * 1400;
-
-          const laneInView = inViewTargets.filter((t) => t.lane === agent.assignedLane);
-          const targetsToUse = laneInView.length > 0 ? laneInView : inViewTargets;
-
-          if (targetsToUse.length === 0) {
-            const ptr = config.getUserPointer();
-            agent.targetX = ptr.active ? ptr.x : window.innerWidth / 2;
-            agent.targetY = ptr.active ? ptr.y : window.innerHeight / 2;
-          } else {
-            const pick = targetsToUse[Math.floor(Math.random() * targetsToUse.length)];
-            const r = pick.element.getBoundingClientRect();
-            const angle = Math.random() * Math.PI * 2;
-            const dist = 50 + Math.random() * 120;
-            const candX = r.left + r.width / 2 + Math.cos(angle) * dist;
-            const candY = r.top + r.height / 2 + Math.sin(angle) * dist;
-
-            agent.targetX = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerWidth - AGENT_SWARM_CONFIG.viewportMargin, candX));
-            agent.targetY = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerHeight - AGENT_SWARM_CONFIG.viewportMargin, candY));
-          }
-        }
-        agent.x += (agent.targetX - agent.x) * lerpCfg.helper;
-        agent.y += (agent.targetY - agent.y) * lerpCfg.helper;
-
-        agent.x = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerWidth - AGENT_SWARM_CONFIG.viewportMargin, agent.x));
-        agent.y = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerHeight - AGENT_SWARM_CONFIG.viewportMargin, agent.y));
-        return;
-      }
+    agents.forEach((agent) => {
+      const activeTarget = targetsQueue.find((t) => t.id === agent.activeTargetId);
 
       // Check if target scrolled out of view mid-job
-      const activeTarget = targetsQueue.find((t) => t.id === agent.activeTargetId);
-      if (activeTarget) {
-        const r = activeTarget.element.getBoundingClientRect();
-        if (r.bottom < 0 || r.top > window.innerHeight) {
-          revealTarget(activeTarget);
-          agent.activeTargetId = undefined;
-          agent.boxRect = undefined;
-          agent.mode = 'idle';
-          return;
+      if (agent.mode === 'traveling' || agent.mode === 'working') {
+        if (activeTarget) {
+          const r = activeTarget.element.getBoundingClientRect();
+          if (r.bottom < 0 || r.top > window.innerHeight) {
+            revealTarget(activeTarget);
+            // Immediately start returning to cursor
+            agent.mode = 'returning';
+            agent.departureTime = now;
+            agent.boxRect = undefined;
+          }
         }
       }
 
-      if (agent.mode === 'flying') {
+      // STATE 1: TRAVELING (Flying from cursor to task)
+      if (agent.mode === 'traveling') {
+        const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
+        const eased = 1 - Math.pow(1 - progress, 3); // Smooth cubic ease-out
+
+        // Dynamic target tracking in case of scroll
         if (activeTarget) {
           const rect = activeTarget.element.getBoundingClientRect();
           const padX = activeTarget.padding?.x || 0;
           const padY = activeTarget.padding?.y || 0;
           agent.targetX = rect.left - padX;
           agent.targetY = rect.top - padY;
+          if (agent.boxRect) {
+            agent.boxRect.x = agent.targetX;
+            agent.boxRect.y = agent.targetY;
+          }
         }
 
-        agent.x += (agent.targetX - agent.x) * (lerpCfg.working / K);
-        agent.y += (agent.targetY - agent.y) * (lerpCfg.working / K);
+        agent.x = agent.startX + (agent.targetX - agent.startX) * eased;
+        agent.y = agent.startY + (agent.targetY - agent.startY) * eased;
 
-        if (now - agent.actionStart >= agent.actionDuration || Math.hypot(agent.targetX - agent.x, agent.targetY - agent.y) < 6) {
-          agent.mode = 'dragging';
+        // Pop scale from 0 to 1 over first 120ms
+        const popProgress = Math.min(1, (now - agent.actionStart) / 120);
+        agent.scale = Math.min(1, popProgress * 1.15);
+
+        // Emit fading path trail
+        agent.trail.push({ x: agent.x, y: agent.y, alpha: 0.75 });
+        if (agent.trail.length > 5) agent.trail.shift();
+
+        if (progress >= 1 || Math.hypot(agent.targetX - agent.x, agent.targetY - agent.y) < 6) {
+          agent.scale = 1;
+          agent.mode = 'working';
+          agent.workPhase = 'dragging';
           agent.actionStart = now;
           agent.actionDuration = d.dragBox * K;
 
-          if (activeTarget) {
+          if (activeTarget && agent.boxRect) {
             const rect = activeTarget.element.getBoundingClientRect();
             const padX = activeTarget.padding?.x || 0;
             const padY = activeTarget.padding?.y || 0;
-            agent.boxRect = {
-              x: rect.left - padX,
-              y: rect.top - padY,
-              w: 0,
-              h: 0,
-              fullW: Math.max(24, rect.width + padX * 2),
-              fullH: Math.max(18, rect.height + padY * 2),
-            };
+            agent.boxRect.x = rect.left - padX;
+            agent.boxRect.y = rect.top - padY;
+            agent.boxRect.fullW = Math.max(24, rect.width + padX * 2);
+            agent.boxRect.fullH = Math.max(18, rect.height + padY * 2);
           }
-        }
-      } else if (agent.mode === 'dragging') {
-        const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
-        const easeOut = 1 - Math.pow(1 - progress, 3);
-
-        if (activeTarget && agent.boxRect) {
-          const rect = activeTarget.element.getBoundingClientRect();
-          const padX = activeTarget.padding?.x || 0;
-          const padY = activeTarget.padding?.y || 0;
-          agent.boxRect.x = rect.left - padX;
-          agent.boxRect.y = rect.top - padY;
-          agent.boxRect.fullW = Math.max(24, rect.width + padX * 2);
-          agent.boxRect.fullH = Math.max(18, rect.height + padY * 2);
-          agent.boxRect.w = agent.boxRect.fullW * easeOut;
-          agent.boxRect.h = agent.boxRect.fullH * easeOut;
-
-          agent.x = agent.boxRect.x + agent.boxRect.w;
-          agent.y = agent.boxRect.y + agent.boxRect.h;
-
-          activeGuides.push({
-            x: agent.boxRect.x,
-            y: agent.boxRect.y,
-            w: agent.boxRect.w,
-            h: agent.boxRect.h,
-            color: agent.color,
-            tag: agent.tagLabel || '',
-            opacity: 1,
-          });
-        }
-
-        if (progress >= 1) {
-          agent.mode = 'acting';
-          agent.actionStart = now;
-
-          if (activeTarget && activeTarget.type !== 'hero-name-word') {
-            activeTarget.element.setAttribute('data-agent-active', 'true');
-          }
-
-          if (activeTarget?.type === 'nav-header') {
-            agent.cursorType = 'arrow';
-            agent.actionDuration = d.dragBox * K;
-            activeTarget.element.style.opacity = '1';
-            activeTarget.element.style.visibility = 'visible';
-          } else if (activeTarget?.type === 'text') {
-            agent.cursorType = 'ibeam';
-            const totalChars = activeTarget.spans?.length || 1;
-            agent.actionDuration = Math.min(d.typingMaxPerElement * K, totalChars * d.typingPerChar * K);
-          } else if (activeTarget?.type === 'hero-name-word') {
-            agent.cursorType = 'ibeam';
-            const totalChars = activeTarget.spans?.length || 1;
-            agent.actionDuration = totalChars * d.typingPerCharHeroName * K;
-          } else if (activeTarget?.type === 'svg-shape') {
-            agent.cursorType = 'arrow';
-            agent.actionDuration = d.shapePlacement * K;
-          } else if (activeTarget?.type === 'button' || activeTarget?.type === 'chip') {
-            agent.cursorType = 'arrow';
-            agent.actionDuration = d.buttonRipple * K * 1.5;
-          } else {
-            agent.cursorType = 'arrow';
-            agent.actionDuration = d.blockWireframe * K;
-          }
-        }
-      } else if (agent.mode === 'acting') {
-        const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
-
-        if (activeTarget && agent.boxRect) {
-          const rect = activeTarget.element.getBoundingClientRect();
-          const padX = activeTarget.padding?.x || 0;
-          const padY = activeTarget.padding?.y || 0;
-          agent.boxRect.x = rect.left - padX;
-          agent.boxRect.y = rect.top - padY;
-          agent.boxRect.w = rect.width + padX * 2;
-          agent.boxRect.h = rect.height + padY * 2;
-
-          activeGuides.push({
-            x: agent.boxRect.x,
-            y: agent.boxRect.y,
-            w: agent.boxRect.w,
-            h: agent.boxRect.h,
-            color: agent.color,
-            tag: agent.tagLabel || '',
-            opacity: 1,
-          });
-        }
-
-        // Action per type
-        if (activeTarget?.type === 'text' || activeTarget?.type === 'hero-name-word') {
-          if (activeTarget.spans && activeTarget.spans.length > 0) {
-            const totalChars = activeTarget.spans.length;
-            const charIndex = Math.min(totalChars - 1, Math.floor(progress * totalChars));
-
-            for (let i = 0; i <= charIndex; i++) {
-              const s = activeTarget.spans[i];
-              s.setAttribute('data-char-revealed', 'true');
-              s.style.opacity = '1';
-              s.style.visibility = 'visible';
-            }
-
-            const activeSpan = activeTarget.spans[charIndex];
-            const spanRect = activeSpan.getBoundingClientRect();
-            agent.x = spanRect.right;
-            agent.y = spanRect.top + spanRect.height / 2;
-          }
-        } else if (activeTarget?.type === 'button' || activeTarget?.type === 'chip') {
-          const btnRect = activeTarget.element.getBoundingClientRect();
-          const centerX = btnRect.left + btnRect.width / 2;
-          const centerY = btnRect.top + btnRect.height / 2;
-
-          agent.x += (centerX - agent.x) * 0.35;
-          agent.y += (centerY - agent.y) * 0.35;
-
-          const rippleProgress = Math.min(1, (now - agent.actionStart) / (d.buttonRipple * K));
-          const rippleR = 10 + rippleProgress * 30;
-          const rippleAlpha = Math.max(0, 1 - rippleProgress);
-
-          if (rippleAlpha > 0.01) {
-            ctx!.save();
-            ctx!.globalAlpha = rippleAlpha;
-            ctx!.strokeStyle = agent.color;
-            ctx!.lineWidth = 2;
-            ctx!.beginPath();
-            ctx!.arc(centerX, centerY, rippleR, 0, Math.PI * 2);
-            ctx!.stroke();
-            ctx!.restore();
-          }
-
-          activeTarget.element.style.opacity = `${progress}`;
-          activeTarget.element.style.visibility = 'visible';
-        } else if (activeTarget?.type === 'nav-header') {
-          activeTarget.element.style.opacity = '1';
-          activeTarget.element.style.visibility = 'visible';
-        } else if (activeTarget?.type === 'form-field') {
-          if (activeTarget.spans && activeTarget.spans.length > 0) {
-            const totalChars = activeTarget.spans.length;
-            const charIndex = Math.min(totalChars - 1, Math.floor(progress * totalChars));
-            for (let i = 0; i <= charIndex; i++) {
-              const s = activeTarget.spans[i];
-              s.setAttribute('data-char-revealed', 'true');
-              s.style.opacity = '1';
-              s.style.visibility = 'visible';
-            }
-            const activeSpan = activeTarget.spans[charIndex];
-            const spanRect = activeSpan.getBoundingClientRect();
-            agent.x = spanRect.right;
-            agent.y = spanRect.top + spanRect.height / 2;
-          }
-
-          if (agent.boxRect) {
-            const borderY = agent.boxRect.y + agent.boxRect.h;
-            const borderW = agent.boxRect.w * progress;
-            ctx!.save();
-            ctx!.strokeStyle = agent.color;
-            ctx!.lineWidth = 2.5;
-            ctx!.beginPath();
-            ctx!.moveTo(agent.boxRect.x, borderY);
-            ctx!.lineTo(agent.boxRect.x + borderW, borderY);
-            ctx!.stroke();
-            ctx!.restore();
-          }
-
-          activeTarget.element.style.opacity = `${progress}`;
-          activeTarget.element.style.visibility = 'visible';
-        } else if (activeTarget?.type === 'figure') {
-          if (agent.boxRect) {
-            ctx!.save();
-            ctx!.fillStyle = 'rgba(15, 23, 42, 0.5)';
-            ctx!.fillRect(agent.boxRect.x, agent.boxRect.y, agent.boxRect.w, agent.boxRect.h);
-
-            ctx!.strokeStyle = agent.color;
-            ctx!.lineWidth = 1.5;
-            ctx!.setLineDash([4, 4]);
-            ctx!.strokeRect(agent.boxRect.x + 4, agent.boxRect.y + 4, agent.boxRect.w - 8, agent.boxRect.h - 8);
-            ctx!.restore();
-          }
-          activeTarget.element.style.opacity = `${progress}`;
-          activeTarget.element.style.visibility = 'visible';
-        } else if (activeTarget?.type === 'svg-shape') {
-          const scale = 0.4 + progress * 0.6;
-          activeTarget.element.setAttribute('data-agent-active', 'true');
-          activeTarget.element.style.opacity = `${progress}`;
-          activeTarget.element.style.visibility = 'visible';
-          activeTarget.element.style.transformOrigin = 'center';
-          activeTarget.element.style.transform = `scale(${scale})`;
-
-          if (agent.boxRect) {
-            const centerX = agent.boxRect.x + agent.boxRect.w / 2;
-            const centerY = agent.boxRect.y + agent.boxRect.h / 2;
-            agent.x += (centerX - agent.x) * 0.25;
-            agent.y += (centerY - agent.y) * 0.25;
-          }
-        }
-
-        if (progress >= 1) {
-          if (activeTarget) {
-            revealTarget(activeTarget);
-          }
-          agent.cursorType = 'arrow';
-          agent.mode = 'finishing';
-          agent.actionStart = now;
-          agent.actionDuration = d.boxFadeOut * K;
-        }
-      } else if (agent.mode === 'finishing') {
-        const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
-        const boxOpacity = 1 - progress;
-
-        if (agent.boxRect && boxOpacity > 0.05) {
-          activeGuides.push({
-            x: agent.boxRect.x,
-            y: agent.boxRect.y,
-            w: agent.boxRect.w,
-            h: agent.boxRect.h,
-            color: agent.color,
-            tag: agent.tagLabel || '',
-            opacity: boxOpacity,
-          });
-        }
-
-        if (progress >= 1) {
-          agent.mode = 'idle';
-          agent.activeTargetId = undefined;
-          agent.boxRect = undefined;
-          const angle = Math.random() * Math.PI * 2;
-          const dist = 70 + Math.random() * 150;
-          agent.targetX = Math.max(8, Math.min(window.innerWidth - 8, agent.x + Math.cos(angle) * dist));
-          agent.targetY = Math.max(8, Math.min(window.innerHeight - 8, agent.y + Math.sin(angle) * dist));
         }
       }
 
+      // STATE 2: WORKING ON TASK
+      else if (agent.mode === 'working') {
+        if (agent.workPhase === 'dragging') {
+          const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+
+          if (activeTarget && agent.boxRect) {
+            const rect = activeTarget.element.getBoundingClientRect();
+            const padX = activeTarget.padding?.x || 0;
+            const padY = activeTarget.padding?.y || 0;
+            agent.boxRect.x = rect.left - padX;
+            agent.boxRect.y = rect.top - padY;
+            agent.boxRect.fullW = Math.max(24, rect.width + padX * 2);
+            agent.boxRect.fullH = Math.max(18, rect.height + padY * 2);
+            agent.boxRect.w = agent.boxRect.fullW * easeOut;
+            agent.boxRect.h = agent.boxRect.fullH * easeOut;
+
+            agent.x = agent.boxRect.x + agent.boxRect.w;
+            agent.y = agent.boxRect.y + agent.boxRect.h;
+
+            activeGuides.push({
+              x: agent.boxRect.x,
+              y: agent.boxRect.y,
+              w: agent.boxRect.w,
+              h: agent.boxRect.h,
+              color: agent.color,
+              tag: agent.tagLabel || '',
+              opacity: 1,
+            });
+          }
+
+          if (progress >= 1) {
+            agent.workPhase = 'acting';
+            agent.actionStart = now;
+
+            if (activeTarget && activeTarget.type !== 'hero-name-word') {
+              activeTarget.element.setAttribute('data-agent-active', 'true');
+            }
+
+            if (activeTarget?.type === 'nav-header') {
+              agent.cursorType = 'arrow';
+              agent.actionDuration = d.dragBox * K;
+              activeTarget.element.style.opacity = '1';
+              activeTarget.element.style.visibility = 'visible';
+            } else if (activeTarget?.type === 'text') {
+              agent.cursorType = 'ibeam';
+              const totalChars = activeTarget.spans?.length || 1;
+              agent.actionDuration = Math.min(d.typingMaxPerElement * K, totalChars * d.typingPerChar * K);
+            } else if (activeTarget?.type === 'hero-name-word') {
+              agent.cursorType = 'ibeam';
+              const totalChars = activeTarget.spans?.length || 1;
+              agent.actionDuration = totalChars * d.typingPerCharHeroName * K;
+            } else if (activeTarget?.type === 'svg-shape') {
+              agent.cursorType = 'arrow';
+              agent.actionDuration = d.shapePlacement * K;
+            } else if (activeTarget?.type === 'button' || activeTarget?.type === 'chip') {
+              agent.cursorType = 'arrow';
+              agent.actionDuration = d.buttonRipple * K * 1.5;
+            } else {
+              agent.cursorType = 'arrow';
+              agent.actionDuration = d.blockWireframe * K;
+            }
+          }
+        } else if (agent.workPhase === 'acting') {
+          const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
+
+          if (activeTarget && agent.boxRect) {
+            const rect = activeTarget.element.getBoundingClientRect();
+            const padX = activeTarget.padding?.x || 0;
+            const padY = activeTarget.padding?.y || 0;
+            agent.boxRect.x = rect.left - padX;
+            agent.boxRect.y = rect.top - padY;
+            agent.boxRect.w = rect.width + padX * 2;
+            agent.boxRect.h = rect.height + padY * 2;
+
+            activeGuides.push({
+              x: agent.boxRect.x,
+              y: agent.boxRect.y,
+              w: agent.boxRect.w,
+              h: agent.boxRect.h,
+              color: agent.color,
+              tag: agent.tagLabel || '',
+              opacity: 1,
+            });
+          }
+
+          // Specific building animation per type
+          if (activeTarget?.type === 'text' || activeTarget?.type === 'hero-name-word') {
+            if (activeTarget.spans && activeTarget.spans.length > 0) {
+              const totalChars = activeTarget.spans.length;
+              const charIndex = Math.min(totalChars - 1, Math.floor(progress * totalChars));
+
+              for (let i = 0; i <= charIndex; i++) {
+                const s = activeTarget.spans[i];
+                s.setAttribute('data-char-revealed', 'true');
+                s.style.opacity = '1';
+                s.style.visibility = 'visible';
+              }
+
+              const activeSpan = activeTarget.spans[charIndex];
+              const spanRect = activeSpan.getBoundingClientRect();
+              agent.x = spanRect.right;
+              agent.y = spanRect.top + spanRect.height / 2;
+            }
+          } else if (activeTarget?.type === 'button' || activeTarget?.type === 'chip') {
+            const btnRect = activeTarget.element.getBoundingClientRect();
+            const centerX = btnRect.left + btnRect.width / 2;
+            const centerY = btnRect.top + btnRect.height / 2;
+
+            agent.x += (centerX - agent.x) * 0.35;
+            agent.y += (centerY - agent.y) * 0.35;
+
+            const rippleProgress = Math.min(1, (now - agent.actionStart) / (d.buttonRipple * K));
+            const rippleR = 10 + rippleProgress * 30;
+            const rippleAlpha = Math.max(0, 1 - rippleProgress);
+
+            if (rippleAlpha > 0.01) {
+              ctx!.save();
+              ctx!.globalAlpha = rippleAlpha;
+              ctx!.strokeStyle = agent.color;
+              ctx!.lineWidth = 2;
+              ctx!.beginPath();
+              ctx!.arc(centerX, centerY, rippleR, 0, Math.PI * 2);
+              ctx!.stroke();
+              ctx!.restore();
+            }
+
+            activeTarget.element.style.opacity = `${progress}`;
+            activeTarget.element.style.visibility = 'visible';
+          } else if (activeTarget?.type === 'nav-header') {
+            activeTarget.element.style.opacity = '1';
+            activeTarget.element.style.visibility = 'visible';
+          } else if (activeTarget?.type === 'form-field') {
+            if (activeTarget.spans && activeTarget.spans.length > 0) {
+              const totalChars = activeTarget.spans.length;
+              const charIndex = Math.min(totalChars - 1, Math.floor(progress * totalChars));
+              for (let i = 0; i <= charIndex; i++) {
+                const s = activeTarget.spans[i];
+                s.setAttribute('data-char-revealed', 'true');
+                s.style.opacity = '1';
+                s.style.visibility = 'visible';
+              }
+              const activeSpan = activeTarget.spans[charIndex];
+              const spanRect = activeSpan.getBoundingClientRect();
+              agent.x = spanRect.right;
+              agent.y = spanRect.top + spanRect.height / 2;
+            }
+
+            if (agent.boxRect) {
+              const borderY = agent.boxRect.y + agent.boxRect.h;
+              const borderW = agent.boxRect.w * progress;
+              ctx!.save();
+              ctx!.strokeStyle = agent.color;
+              ctx!.lineWidth = 2.5;
+              ctx!.beginPath();
+              ctx!.moveTo(agent.boxRect.x, borderY);
+              ctx!.lineTo(agent.boxRect.x + borderW, borderY);
+              ctx!.stroke();
+              ctx!.restore();
+            }
+
+            activeTarget.element.style.opacity = `${progress}`;
+            activeTarget.element.style.visibility = 'visible';
+          } else if (activeTarget?.type === 'figure') {
+            if (agent.boxRect) {
+              ctx!.save();
+              ctx!.fillStyle = 'rgba(15, 23, 42, 0.5)';
+              ctx!.fillRect(agent.boxRect.x, agent.boxRect.y, agent.boxRect.w, agent.boxRect.h);
+
+              ctx!.strokeStyle = agent.color;
+              ctx!.lineWidth = 1.5;
+              ctx!.setLineDash([4, 4]);
+              ctx!.strokeRect(agent.boxRect.x + 4, agent.boxRect.y + 4, agent.boxRect.w - 8, agent.boxRect.h - 8);
+              ctx!.restore();
+            }
+            activeTarget.element.style.opacity = `${progress}`;
+            activeTarget.element.style.visibility = 'visible';
+          } else if (activeTarget?.type === 'svg-shape') {
+            const scale = 0.4 + progress * 0.6;
+            activeTarget.element.setAttribute('data-agent-active', 'true');
+            activeTarget.element.style.opacity = `${progress}`;
+            activeTarget.element.style.visibility = 'visible';
+            activeTarget.element.style.transformOrigin = 'center';
+            activeTarget.element.style.transform = `scale(${scale})`;
+
+            if (agent.boxRect) {
+              const centerX = agent.boxRect.x + agent.boxRect.w / 2;
+              const centerY = agent.boxRect.y + agent.boxRect.h / 2;
+              agent.x += (centerX - agent.x) * 0.25;
+              agent.y += (centerY - agent.y) * 0.25;
+            }
+          }
+
+          if (progress >= 1) {
+            if (activeTarget) {
+              revealTarget(activeTarget);
+            }
+            agent.cursorType = 'arrow';
+            agent.workPhase = 'finishing';
+            agent.actionStart = now;
+            agent.actionDuration = d.boxFadeOut * K;
+          }
+        } else if (agent.workPhase === 'finishing') {
+          const progress = Math.min(1, (now - agent.actionStart) / agent.actionDuration);
+          const boxOpacity = 1 - progress;
+
+          if (agent.boxRect && boxOpacity > 0.05) {
+            activeGuides.push({
+              x: agent.boxRect.x,
+              y: agent.boxRect.y,
+              w: agent.boxRect.w,
+              h: agent.boxRect.h,
+              color: agent.color,
+              tag: agent.tagLabel || '',
+              opacity: boxOpacity,
+            });
+          }
+
+          if (progress >= 1) {
+            // Task is completely finished -> RETURN IMMEDIATELY TO CURSOR!
+            agent.mode = 'returning';
+            agent.departureTime = now;
+            agent.boxRect = undefined;
+          }
+        }
+      }
+
+      // STATE 3: RETURNING DIRECTLY TO VISITOR'S LIVE CURSOR
+      else if (agent.mode === 'returning') {
+        if (agent.departureTime && now < agent.departureTime) {
+          // Waiting for staggered departure (during cancel)
+          return;
+        }
+
+        const ptr = config.getUserPointer();
+        const destX = ptr.active ? ptr.x : window.innerWidth / 2;
+        const destY = ptr.active ? ptr.y : window.innerHeight / 2;
+
+        agent.x += (destX - agent.x) * (lerpCfg.merge / K);
+        agent.y += (destY - agent.y) * (lerpCfg.merge / K);
+
+        // Emit fading path trail while flying back
+        agent.trail.push({ x: agent.x, y: agent.y, alpha: 0.75 });
+        if (agent.trail.length > 5) agent.trail.shift();
+
+        const dist = Math.hypot(destX - agent.x, destY - agent.y);
+
+        // Shrink within 40px of pointer
+        if (dist < 40) {
+          agent.scale = Math.max(0, agent.scale - 0.16);
+        }
+
+        // DIE within 10px of pointer
+        if (dist < 10 || agent.scale <= 0.05) {
+          pulseRings.push({
+            x: destX,
+            y: destY,
+            radius: 0,
+            maxRadius: 18,
+            alpha: 0.8,
+            color: agent.color,
+          });
+          deadAgentIds.push(agent.id);
+        }
+      }
+
+      // Clamp coordinates to viewport with 8px margin
       agent.x = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerWidth - AGENT_SWARM_CONFIG.viewportMargin, agent.x));
       agent.y = Math.max(AGENT_SWARM_CONFIG.viewportMargin, Math.min(window.innerHeight - AGENT_SWARM_CONFIG.viewportMargin, agent.y));
     });
+
+    // Remove dead agents from state array
+    if (deadAgentIds.length > 0) {
+      agents = agents.filter((a) => !deadAgentIds.includes(a.id));
+    }
 
     // DRAW SELECTION BOXES & VIEWPORT GUIDE LINES
     activeGuides.forEach((g) => {
@@ -1235,21 +1221,18 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
     });
 
     // DRAW CURSORS, "+" TRAILS & NAME TAGS
-    let totalPlusMarks = 0;
+    const ptr = config.getUserPointer();
+    const ptrX = ptr.active ? ptr.x : window.innerWidth / 2;
+    const ptrY = ptr.active ? ptr.y : 200;
 
     agents.forEach((agent) => {
-      if (agent.mode === 'unspawned' || agent.mode === 'hidden') return;
-
-      if (agent.role === 'ambient' && totalPlusMarks < 40) {
-        agent.trail.push({ x: agent.x, y: agent.y, alpha: 0.75 });
-        if (agent.trail.length > 4) agent.trail.shift();
-
+      // Trails only while traveling or returning along path
+      if (agent.mode === 'traveling' || agent.mode === 'returning') {
         ctx!.font = '10px sans-serif';
         ctx!.fillStyle = agent.color;
         agent.trail.forEach((pt) => {
           pt.alpha *= 0.88;
           if (pt.alpha > 0.08) {
-            totalPlusMarks++;
             ctx!.save();
             ctx!.globalAlpha = pt.alpha;
             ctx!.fillText('+', pt.x - 3, pt.y + 4);
@@ -1266,16 +1249,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       ctx!.shadowOffsetX = 1;
       ctx!.shadowOffsetY = 2;
 
-      if (agent.cursorType === 'crosshair') {
-        ctx!.strokeStyle = agent.color;
-        ctx!.lineWidth = 1.5;
-        ctx!.beginPath();
-        ctx!.moveTo(-6, 0);
-        ctx!.lineTo(6, 0);
-        ctx!.moveTo(0, -6);
-        ctx!.lineTo(0, 6);
-        ctx!.stroke();
-      } else if (agent.cursorType === 'ibeam') {
+      if (agent.cursorType === 'ibeam') {
         ctx!.strokeStyle = agent.color;
         ctx!.lineWidth = 2;
         ctx!.beginPath();
@@ -1303,12 +1277,9 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       }
       ctx!.restore();
 
-      const ptr = config.getUserPointer();
-      const distFromSpawn = Math.hypot(
-        agent.x - (ptr.active ? ptr.x : window.innerWidth / 2),
-        agent.y - (ptr.active ? ptr.y : 200)
-      );
-      if (agent.mode !== 'merging' && agent.scale > 0.5 && distFromSpawn > 40) {
+      // Show name tag ONLY when > 40px away from the pointer and not returning
+      const distFromPointer = Math.hypot(agent.x - ptrX, agent.y - ptrY);
+      if (distFromPointer > 40 && agent.scale > 0.5 && agent.mode !== 'returning') {
         ctx!.save();
         const badgeText = agent.name;
         ctx!.font = 'bold 8.5px JetBrains Mono, monospace';
@@ -1327,9 +1298,13 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       }
     });
 
-    // Check Merge Completion
-    if (status === 'merging' && agents.every((a) => a.mode === 'hidden')) {
+    // ------------------------------------------------------------------------
+    // NATURAL RUN COMPLETION: Queue is empty AND every agent has died
+    // ------------------------------------------------------------------------
+    const remainingTasks = activeTargets.filter((t) => t.status === 'pending' || t.status === 'in-progress');
+    if (activeTargets.length > 0 && remainingTasks.length === 0 && agents.length === 0) {
       ctx.restore();
+      const finishReason = status === 'cancelling' ? 'cancelled' : 'completed';
       status = 'done';
       cleanupDOM();
 
@@ -1340,8 +1315,8 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
         document.documentElement.classList.remove('agent-swarm-active');
       }
 
-      console.log(`swarm run finished: ${config.name}`);
-      config.onFinished?.('completed');
+      console.log(`swarm run finished: ${config.name} (${finishReason})`);
+      config.onFinished?.(finishReason);
       return;
     }
 
@@ -1354,6 +1329,9 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
       if (status !== 'unstarted') return;
       status = 'active';
       startTime = performance.now();
+      lastSpawnTime = 0;
+      agentCounter = 0;
+      agents = [];
       console.log(`swarm run started: ${config.name}`);
 
       try {
@@ -1375,74 +1353,6 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
         handleResize();
         window.addEventListener('resize', handleResize);
 
-        const ptr = config.getUserPointer();
-        const spawnX = ptr.active ? ptr.x : window.innerWidth / 2;
-        const spawnY = ptr.active ? ptr.y : config.name === 'hero' ? 220 : 180;
-
-        const maxNavW = isMob ? AGENT_SWARM_CONFIG.maxNavWorkersMobile : AGENT_SWARM_CONFIG.maxNavWorkersDesktop;
-        const maxHeroW = isMob ? AGENT_SWARM_CONFIG.maxHeroWorkersMobile : AGENT_SWARM_CONFIG.maxHeroWorkersDesktop;
-        const maxContactW = isMob ? AGENT_SWARM_CONFIG.maxContactWorkersMobile : AGENT_SWARM_CONFIG.maxContactWorkersDesktop;
-        const maxFooterW = isMob ? AGENT_SWARM_CONFIG.maxFooterWorkersMobile : AGENT_SWARM_CONFIG.maxFooterWorkersDesktop;
-
-        agents = [];
-        for (let idx = 0; idx < totalAgents; idx++) {
-          const name = `agent-${idx + 1}`;
-          const color = AGENT_SWARM_CONFIG.paletteColors[idx % AGENT_SWARM_CONFIG.paletteColors.length];
-
-          let role: 'worker' | 'ambient' = 'ambient';
-          let lane: WorkLane = config.lanes[0];
-
-          if (config.name === 'hero') {
-            if (idx < maxNavW) {
-              role = 'worker';
-              lane = 'nav';
-            } else if (idx < maxNavW + maxHeroW) {
-              role = 'worker';
-              lane = 'hero';
-            } else {
-              role = 'ambient';
-              lane = idx % 2 === 0 ? 'nav' : 'hero';
-            }
-          } else {
-            // Contact + Footer parallel lanes
-            if (idx < maxContactW) {
-              role = 'worker';
-              lane = 'contact';
-            } else if (idx < maxContactW + maxFooterW) {
-              role = 'worker';
-              lane = 'footer';
-            } else {
-              role = 'ambient';
-              lane = idx % 2 === 0 ? 'contact' : 'footer';
-            }
-          }
-
-          const angle = (idx / totalAgents) * Math.PI * 2;
-          const initialDepX = Math.max(8, Math.min(window.innerWidth - 8, spawnX + Math.cos(angle) * (110 + (idx % 4) * 30)));
-          const initialDepY = Math.max(8, Math.min(window.innerHeight - 8, spawnY + Math.sin(angle) * (110 + (idx % 4) * 30)));
-
-          agents.push({
-            id: name,
-            name,
-            color,
-            assignedLane: lane,
-            role,
-            x: spawnX,
-            y: spawnY,
-            targetX: initialDepX,
-            targetY: initialDepY,
-            scale: 0,
-            spawnTime: startTime + idx * d.spawnInterval,
-            mode: 'unspawned',
-            cursorType: role === 'ambient' ? 'crosshair' : 'arrow',
-            actionStart: 0,
-            actionDuration: 200,
-            lastWanderPick: startTime,
-            wanderInterval: 2200 + Math.random() * 1400,
-            trail: [],
-          });
-        }
-
         animFrameId = requestAnimationFrame(render);
       } catch (err) {
         if (config.name === 'contact') {
@@ -1461,7 +1371,7 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
 
     cancel: () => {
       if (status !== 'active') return;
-      status = 'merging';
+      status = 'cancelling';
       console.log(`swarm run cancelled: ${config.name}`);
 
       // Finish every running job & reveal targets instantly
@@ -1478,19 +1388,23 @@ export function createSwarmRun(config: SwarmRunConfig): SwarmRunInstance {
         document.documentElement.classList.remove('agent-swarm-active');
       }
 
-      // Send all agents directly to cursor
+      // Stagger return for any alive agents (40-70ms apart)
       const now = performance.now();
-      mergeTriggerTime = now;
       agents.forEach((ag, idx) => {
-        ag.activeTargetId = undefined;
+        ag.mode = 'returning';
+        ag.departureTime = now + idx * 45;
         ag.boxRect = undefined;
-        ag.mergeDepartureTime = now + idx * d.mergeInterval;
       });
 
-      config.onFinished?.('cancelled');
+      // If no agents were alive, finish immediately
+      if (agents.length === 0) {
+        status = 'done';
+        cleanupDOM();
+        config.onFinished?.('cancelled');
+      }
     },
 
-    isActive: () => status === 'active' || status === 'merging',
+    isActive: () => status === 'active' || status === 'cancelling',
     isStarted: () => status !== 'unstarted',
     isDone: () => status === 'done',
     destroy: () => {
@@ -1646,12 +1560,10 @@ export const AgentSwarm: React.FC = () => {
 
     // Initial check on load
     if (isContactScopeOnScreen()) {
-      // Page loaded directly at #contact or bottom
       revealHeroScopeTargets();
       heroDoneRef.current = true;
       triggerContactRun();
     } else if (isHeroScopeOnScreen()) {
-      // Wait pointerWaitMax for pointer then start hero run
       const spawnTimer = setTimeout(() => {
         if (isContactScopeOnScreen()) {
           revealHeroScopeTargets();
@@ -1662,10 +1574,8 @@ export const AgentSwarm: React.FC = () => {
         }
       }, AGENT_SWARM_CONFIG.durations.pointerWaitMax);
 
-      // Save spawnTimer for cleanup
       (heroRunRef.current as any)._spawnTimer = spawnTimer;
     } else {
-      // Page loaded somewhere in the middle
       revealHeroScopeTargets();
       heroDoneRef.current = true;
     }
